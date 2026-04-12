@@ -2,6 +2,7 @@ package com.himatsudo.core;
 
 import com.himatsudo.core.commands.MainCommand;
 import com.himatsudo.core.commands.MenuCommand;
+import com.himatsudo.core.modules.AfkModule;
 import com.himatsudo.core.modules.AnnounceModule;
 import com.himatsudo.core.modules.BoardModule;
 import com.himatsudo.core.modules.DiscordModule;
@@ -22,6 +23,7 @@ public final class HimatsudoCore extends JavaPlugin {
     private AnnounceModule announceModule;
     private BoardModule boardModule;
     private MenuModule menuModule;
+    private AfkModule afkModule;
 
     @Override
     public void onEnable() {
@@ -48,6 +50,8 @@ public final class HimatsudoCore extends JavaPlugin {
         announceModule = loadModule("AnnounceModule", () -> new AnnounceModule(this));
         boardModule    = loadModule("BoardModule",    () -> new BoardModule(this));
         menuModule     = loadModule("MenuModule",     () -> new MenuModule(this));
+        // AfkModule は BoardModule の後にロード (nametag 同期のため)
+        afkModule      = loadModule("AfkModule",      () -> new AfkModule(this));
     }
 
     /**
@@ -67,6 +71,7 @@ public final class HimatsudoCore extends JavaPlugin {
     }
 
     private void unloadModules() {
+        if (afkModule      != null) afkModule.shutdown();
         if (announceModule != null) announceModule.shutdown();
         if (boardModule    != null) boardModule.shutdown();
         if (discordModule  != null) discordModule.shutdown();
@@ -90,6 +95,7 @@ public final class HimatsudoCore extends JavaPlugin {
     public AnnounceModule getAnnounceModule() { return announceModule; }
     public BoardModule    getBoardModule()    { return boardModule; }
     public MenuModule     getMenuModule()     { return menuModule; }
+    public AfkModule      getAfkModule()      { return afkModule; }
 
     // -------------------------------------------------------------------------
     // Internal helper

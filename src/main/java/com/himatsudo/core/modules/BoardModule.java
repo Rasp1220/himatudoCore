@@ -17,6 +17,8 @@ import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -92,6 +94,10 @@ public class BoardModule implements Listener {
 
         player.setScoreboard(board);
         activeBoards.put(player.getUniqueId(), board);
+
+        // AfkModule に新しいスコアボードを通知し、現在 AFK 中のプレイヤーのチームを同期する
+        AfkModule afkModule = plugin.getAfkModule();
+        if (afkModule != null) afkModule.syncAfkPlayersToScoreboard(board);
     }
 
     /** Hide the scoreboard and restore the server default. */
@@ -123,6 +129,14 @@ public class BoardModule implements Listener {
         for (Player player : Bukkit.getOnlinePlayers()) {
             refreshBoard(player);
         }
+    }
+
+    /**
+     * AfkModule が頭上プレフィックスを全視点プレイヤーへ反映するために使用する。
+     * 現在カスタムスコアボードを持つ全プレイヤーのスコアボードを返す。
+     */
+    public Collection<Scoreboard> getActiveScoreboards() {
+        return Collections.unmodifiableCollection(activeBoards.values());
     }
 
     public void shutdown() {

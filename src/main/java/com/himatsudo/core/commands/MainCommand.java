@@ -71,6 +71,7 @@ public class MainCommand implements CommandExecutor, TabCompleter {
         try {
             plugin.reloadConfig();
             if (plugin.getAnnounceModule() != null) plugin.getAnnounceModule().reload();
+            if (plugin.getAfkModule()      != null) plugin.getAfkModule().reload();
             sender.sendMessage(Component.text("[HimatsudoCore] 再読み込みが完了しました。", NamedTextColor.GREEN));
         } catch (Exception e) {
             sender.sendMessage(Component.text(
@@ -86,6 +87,7 @@ public class MainCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(statusLine("AnnounceModule", plugin.getAnnounceModule() != null));
         sender.sendMessage(statusLine("BoardModule",    plugin.getBoardModule()    != null));
         sender.sendMessage(statusLine("MenuModule",     plugin.getMenuModule()     != null));
+        sender.sendMessage(statusLine("AfkModule",      plugin.getAfkModule()      != null));
     }
 
     private Component statusLine(String name, boolean loaded) {
