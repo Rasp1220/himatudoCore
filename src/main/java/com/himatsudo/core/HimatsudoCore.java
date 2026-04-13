@@ -7,6 +7,7 @@ import com.himatsudo.core.modules.AnnounceModule;
 import com.himatsudo.core.modules.BoardModule;
 import com.himatsudo.core.modules.DiscordModule;
 import com.himatsudo.core.modules.MenuModule;
+import com.himatsudo.core.modules.TextModule;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.logging.Level;
@@ -24,6 +25,7 @@ public final class HimatsudoCore extends JavaPlugin {
     private BoardModule boardModule;
     private MenuModule menuModule;
     private AfkModule afkModule;
+    private TextModule textModule;
 
     @Override
     public void onEnable() {
@@ -52,6 +54,7 @@ public final class HimatsudoCore extends JavaPlugin {
         menuModule     = loadModule("MenuModule",     () -> new MenuModule(this));
         // AfkModule は BoardModule の後にロード (nametag 同期のため)
         afkModule      = loadModule("AfkModule",      () -> new AfkModule(this));
+        textModule     = loadModule("TextModule",     () -> new TextModule(this));
     }
 
     /**
@@ -72,6 +75,7 @@ public final class HimatsudoCore extends JavaPlugin {
 
     private void unloadModules() {
         if (afkModule      != null) afkModule.shutdown();
+        if (textModule     != null) textModule.shutdown();
         if (announceModule != null) announceModule.shutdown();
         if (boardModule    != null) boardModule.shutdown();
         if (discordModule  != null) discordModule.shutdown();
@@ -96,6 +100,7 @@ public final class HimatsudoCore extends JavaPlugin {
     public BoardModule    getBoardModule()    { return boardModule; }
     public MenuModule     getMenuModule()     { return menuModule; }
     public AfkModule      getAfkModule()      { return afkModule; }
+    public TextModule     getTextModule()     { return textModule; }
 
     // -------------------------------------------------------------------------
     // Internal helper

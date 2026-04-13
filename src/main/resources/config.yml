@@ -103,3 +103,22 @@ afk:
       message: "&e{player} &7が &e10分間 &7放置しています。"
     - seconds: 1800
       message: "&c{player} &7が &c30分間 &7放置しています。自動キックをご検討ください。"
+
+# ------------------------------------------------------------
+# ⑥ Float Text ユニット (Text Display エンティティ)
+# ------------------------------------------------------------
+text:
+  # テキスト設置機能を有効にするか
+  # ※ Minecraft 1.19.4 以降のサーバーが必要です
+  enabled: true
+
+  # テキストデータは plugins/HimatsudoCore/texts.yml に自動保存されます。
+  # このファイルは手動編集も可能ですが、通常は /hc text コマンドで操作してください。
+  #
+  # コマンド例:
+  #   /hc text create welcome-sign &6&lようこそ！\n&7Himatsudo SMP へ
+  #   /hc text edit welcome-sign scale 1.5
+  #   /hc text edit welcome-sign billboard CENTER
+  #   /hc text edit welcome-sign background #40000000
+  #   /hc text list
+  #   /hc text delete welcome-sign

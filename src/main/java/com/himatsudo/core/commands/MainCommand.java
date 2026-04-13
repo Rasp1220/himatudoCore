@@ -18,6 +18,7 @@ import java.util.List;
  *   /hc reload   — reloads config and all modules
  *   /hc status   — shows current module status
  *   /hc version  — shows plugin version
+ *   /hc text ... — floating text management (delegates to TextCommand)
  *   /hc help     — shows this help
  *
  * Permission: himatsudo.admin
@@ -27,9 +28,11 @@ public class MainCommand implements CommandExecutor, TabCompleter {
     private static final String PERMISSION = "himatsudo.admin";
 
     private final HimatsudoCore plugin;
+    private final TextCommand textCommand;
 
     public MainCommand(HimatsudoCore plugin) {
-        this.plugin = plugin;
+        this.plugin       = plugin;
+        this.textCommand  = new TextCommand(plugin);
     }
 
     @Override
@@ -52,11 +55,10 @@ public class MainCommand implements CommandExecutor, TabCompleter {
             case "reload"  -> handleReload(sender);
             case "status"  -> handleStatus(sender);
             case "version" -> handleVersion(sender);
+            case "text"    -> textCommand.handle(sender, args);
             case "help"    -> sendHelp(sender);
-            default -> {
-                sender.sendMessage(Component.text(
-                        "不明なサブコマンドです。/hc help を参照してください。", NamedTextColor.RED));
-            }
+            default -> sender.sendMessage(Component.text(
+                    "不明なサブコマンドです。/hc help を参照してください。", NamedTextColor.RED));
         }
         return true;
     }
@@ -88,6 +90,12 @@ public class MainCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(statusLine("BoardModule",    plugin.getBoardModule()    != null));
         sender.sendMessage(statusLine("MenuModule",     plugin.getMenuModule()     != null));
         sender.sendMessage(statusLine("AfkModule",      plugin.getAfkModule()      != null));
+        sender.sendMessage(statusLine("TextModule",     plugin.getTextModule()     != null));
+        if (plugin.getTextModule() != null) {
+            int count = plugin.getTextModule().getIds().size();
+            sender.sendMessage(Component.text(
+                    "    └ 設置テキスト数: " + count, NamedTextColor.GRAY));
+        }
     }
 
     private Component statusLine(String name, boolean loaded) {
@@ -105,10 +113,12 @@ public class MainCommand implements CommandExecutor, TabCompleter {
 
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(Component.text("--- /hc コマンド一覧 ---", NamedTextColor.GOLD));
-        sender.sendMessage(Component.text("  /hc reload  — コンフィグ再読み込み", NamedTextColor.YELLOW));
-        sender.sendMessage(Component.text("  /hc status  — モジュール状態確認", NamedTextColor.YELLOW));
-        sender.sendMessage(Component.text("  /hc version — バージョン確認", NamedTextColor.YELLOW));
-        sender.sendMessage(Component.text("  /hc help    — このヘルプを表示", NamedTextColor.YELLOW));
+        sender.sendMessage(Component.text("  /hc reload     — コンフィグ再読み込み", NamedTextColor.YELLOW));
+        sender.sendMessage(Component.text("  /hc status     — モジュール状態確認", NamedTextColor.YELLOW));
+        sender.sendMessage(Component.text("  /hc version    — バージョン確認", NamedTextColor.YELLOW));
+        sender.sendMessage(Component.text("  /hc text ...   — フロートテキスト管理", NamedTextColor.YELLOW));
+        sender.sendMessage(Component.text("  /hc text help  — テキストコマンド一覧", NamedTextColor.YELLOW));
+        sender.sendMessage(Component.text("  /hc help       — このヘルプを表示", NamedTextColor.YELLOW));
     }
 
     // -------------------------------------------------------------------------
@@ -121,10 +131,14 @@ public class MainCommand implements CommandExecutor, TabCompleter {
                                       @NotNull String alias,
                                       @NotNull String[] args) {
         if (args.length == 1) {
-            return List.of("reload", "status", "version", "help")
+            return List.of("reload", "status", "version", "text", "help")
                     .stream()
                     .filter(s -> s.startsWith(args[0].toLowerCase()))
                     .toList();
+        }
+        // /hc text ... のタブ補完を TextCommand に委譲
+        if (args[0].equalsIgnoreCase("text")) {
+            return textCommand.tabComplete(sender, args);
         }
         return List.of();
     }
