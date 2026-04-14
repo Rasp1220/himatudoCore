@@ -2,7 +2,7 @@ package com.himatsudo.core.modules;
 
 import com.himatsudo.core.HimatsudoCore;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -71,7 +71,7 @@ public class DiscordModule implements Listener {
         if (!enabled || !plugin.getConfig().getBoolean("discord.notify-death", false)) return;
         Component deathComponent = event.deathMessage();
         String deathMsg = deathComponent != null
-                ? PlainTextComponentSerializer.plainText().serialize(deathComponent)
+                ? LegacyComponentSerializer.legacySection().serialize(deathComponent)
                 : event.getEntity().getName() + " が死亡しました。";
         sendMessage(":skull: " + deathMsg);
     }
