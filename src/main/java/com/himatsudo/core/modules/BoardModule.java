@@ -174,9 +174,6 @@ public class BoardModule implements Listener {
         lines.forEach((rawLine, score) -> {
             Component lineComponent = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
                     .legacyAmpersand().deserialize(rawLine);
-            Score entry = objective.getScore(rawLine);
-            entry.setScore(score);
-            objective.getScoreboard().resetScores(rawLine);
             Score s = objective.getScore(rawLine);
             s.customName(lineComponent);
             s.setScore(score);
