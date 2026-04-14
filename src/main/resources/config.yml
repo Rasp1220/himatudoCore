@@ -122,3 +122,66 @@ text:
   #   /hc text edit welcome-sign background #40000000
   #   /hc text list
   #   /hc text delete welcome-sign
+
+# ------------------------------------------------------------
+# ⑦ Join Message ユニット (入退室メッセージ)
+# ------------------------------------------------------------
+join-message:
+  # 入退室メッセージ機能を有効にするか
+  enabled: true
+
+  # ----------------
+  # 初参加時メッセージ
+  # ----------------
+  first-join:
+    # 初参加メッセージを有効にするか (false にすると通常参加メッセージが使われる)
+    enabled: true
+    # {player} はプレイヤー名に置換されます / &カラーコード / &#RRGGBB 使用可
+    message: "&6&l★ &e{player} &6&lが初めてHimatsudoに参加しました！ &6&l★"
+
+  # ----------------
+  # 通常参加時メッセージ
+  # ----------------
+  join:
+    message: "&7&l» &r&f{player} &7がサーバーに参加しました。"
+
+  # ----------------
+  # 退出時メッセージ
+  # ----------------
+  quit:
+    message: "&7&l« &r&f{player} &7がサーバーから退出しました。"
+  # ヒント: message を空文字 "" にするとそのメッセージを非表示にできます。
+
+# ------------------------------------------------------------
+# ⑧ Chat Format ユニット (チャット整形)
+# ------------------------------------------------------------
+chat:
+  # チャット整形機能を有効にするか
+  enabled: true
+
+  # チャットのフォーマット
+  # 使えるプレースホルダー:
+  #   {prefix}  — ランク名 (prefix-color が適用されます)
+  #   {player}  — プレイヤー名
+  #   {message} — 送信されたメッセージ本文
+  format: "&8[{prefix}&8] &f{player}&7: &r{message}"
+
+  # ランク定義 — 上から順に評価し、最初にパーミッションがマッチしたランクを使用します。
+  # permission が空 "" のエントリはデフォルトランクとして扱われます。
+  # ランクを追加したい場合はエントリを上に追加してください。
+  ranks:
+    - name: "管理者"
+      permission: "himatsudo.admin"
+      prefix-color: "&c"       # 赤
+
+    - name: "モデレーター"
+      permission: "himatsudo.mod"
+      prefix-color: "&6"       # 橙
+
+    - name: "ビルダー"
+      permission: "himatsudo.builder"
+      prefix-color: "&b"       # 水色
+
+    - name: "一般"
+      permission: ""           # 空 = デフォルトランク (全プレイヤーに適用)
+      prefix-color: "&7"       # グレー

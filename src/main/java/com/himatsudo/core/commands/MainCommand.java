@@ -74,6 +74,7 @@ public class MainCommand implements CommandExecutor, TabCompleter {
             plugin.reloadConfig();
             if (plugin.getAnnounceModule() != null) plugin.getAnnounceModule().reload();
             if (plugin.getAfkModule()      != null) plugin.getAfkModule().reload();
+            if (plugin.getChatModule()     != null) plugin.getChatModule().reload();
             sender.sendMessage(Component.text("[HimatsudoCore] 再読み込みが完了しました。", NamedTextColor.GREEN));
         } catch (Exception e) {
             sender.sendMessage(Component.text(
@@ -90,12 +91,14 @@ public class MainCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(statusLine("BoardModule",    plugin.getBoardModule()    != null));
         sender.sendMessage(statusLine("MenuModule",     plugin.getMenuModule()     != null));
         sender.sendMessage(statusLine("AfkModule",      plugin.getAfkModule()      != null));
-        sender.sendMessage(statusLine("TextModule",     plugin.getTextModule()     != null));
+        sender.sendMessage(statusLine("TextModule",        plugin.getTextModule()        != null));
         if (plugin.getTextModule() != null) {
             int count = plugin.getTextModule().getIds().size();
             sender.sendMessage(Component.text(
                     "    └ 設置テキスト数: " + count, NamedTextColor.GRAY));
         }
+        sender.sendMessage(statusLine("JoinMessageModule", plugin.getJoinMessageModule() != null));
+        sender.sendMessage(statusLine("ChatModule",        plugin.getChatModule()        != null));
     }
 
     private Component statusLine(String name, boolean loaded) {
