@@ -1,0 +1,26 @@
+name: HimatsudoCore
+version: '${project.version}'
+main: com.himatsudo.core.HimatsudoCore
+api-version: '1.21'
+description: Modular core plugin for Himatsudo server
+authors: [Himatsudo]
+website: https://himatsudo.net
+
+commands:
+  hc:
+    description: HimatsudoCore admin command
+    usage: /hc <reload|status|version|help>
+    permission: himatsudo.admin
+    aliases: [himatsudo, himatsudocore]
+  menu:
+    description: Open the Nexus Menu
+    usage: /menu
+    permission: himatsudo.menu
+
+permissions:
+  himatsudo.admin:
+    description: Access to /hc admin commands
+    default: op
+  himatsudo.menu:
+    description: Access to /menu
+    default: true
