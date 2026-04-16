@@ -117,18 +117,13 @@ public class SecurityAlertModule implements Listener {
 
         String rankDisplay  = getRankDisplay(player);
         String locationText = formatLocation(player);
-        String ipAddress    = player.getAddress() != null
-                ? player.getAddress().getHostString()
-                : "不明";
 
         List<DiscordModule.EmbedField> fields = List.of(
-            new DiscordModule.EmbedField("👤 プレイヤー名", player.getName(),                  true),
-            new DiscordModule.EmbedField("🎖️ ランク",      rankDisplay,                       true),
-            new DiscordModule.EmbedField("💻 実行コマンド", "`" + rawCommand + "`",            false),
-            new DiscordModule.EmbedField("🌍 ワールド",     player.getWorld().getName(),       true),
-            new DiscordModule.EmbedField("📍 座標",         locationText,                      true),
-            new DiscordModule.EmbedField("🔑 UUID",         player.getUniqueId().toString(),   false),
-            new DiscordModule.EmbedField("🌐 IPアドレス",   ipAddress,                         false)
+            new DiscordModule.EmbedField("👤 プレイヤー名", player.getName(),            true),
+            new DiscordModule.EmbedField("🎖️ ランク",      rankDisplay,                 true),
+            new DiscordModule.EmbedField("💻 実行コマンド", "`" + rawCommand + "`",      false),
+            new DiscordModule.EmbedField("🌍 ワールド",     player.getWorld().getName(), true),
+            new DiscordModule.EmbedField("📍 座標",         locationText,                true)
         );
 
         discord.sendEmbed(
@@ -138,8 +133,8 @@ public class SecurityAlertModule implements Listener {
                 fields);
 
         plugin.getLogger().warning(String.format(
-                "[SecurityAlert] %s (IP: %s) attempted: %s",
-                player.getName(), ipAddress, rawCommand));
+                "[SecurityAlert] %s attempted: %s",
+                player.getName(), rawCommand));
     }
 
     // -------------------------------------------------------------------------
