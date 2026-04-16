@@ -203,3 +203,26 @@ tab:
   # アクティブ: [ランク色][ランク名] &a名前
   # AFK      : [ランク色][ランク名] &c名前 &7[AFK]
   # ランク定義は chat.ranks セクションを共有します。
+
+# ------------------------------------------------------------
+# ⑩ Security Alert ユニット (不正コマンド検知)
+# ------------------------------------------------------------
+security-alert:
+  # 機能を有効にするか (discord.enabled と webhook-url も必要)
+  enabled: true
+
+  # 監視対象コマンドリスト
+  # 先頭一致で検出します (例: "gamemode" は /gamemode survival も検知)
+  # OP 保持者・himatsudo.admin 権限者の実行はアラート対象外です。
+  monitored-commands:
+    - op
+    - deop
+    - gamemode
+    - gamerule
+    - ban
+    - ban-ip
+    - pardon
+    - pardon-ip
+    - whitelist
+    - stop
+    - restart
