@@ -71,6 +71,9 @@ public class ProfileModule implements Listener {
     /**
      * viewer に対して target のプロフィールインベントリを開く。
      * viewer と target が同じ場合は自分のプロフィールを表示する。
+     *
+     * 注意: openInventory は InventoryCloseEvent を同期的に発火するため、
+     * 状態の追加は openInventory の呼び出しの後に行う。
      */
     public void openProfile(Player viewer, Player target) {
         Inventory inv = Bukkit.createInventory(null, PROFILE_SIZE,
@@ -84,9 +87,10 @@ public class ProfileModule implements Listener {
         inv.setItem(SLOT_LIST,   buildListButton());
         inv.setItem(SLOT_CLOSE,  buildCloseButton());
 
-        profileViewers.put(viewer.getUniqueId(), target.getUniqueId());
-        listViewers.remove(viewer.getUniqueId());
+        // openInventory が InventoryCloseEvent を発火して古い状態をクリアするため、
+        // 新しい状態の登録は openInventory の後に行う。
         viewer.openInventory(inv);
+        profileViewers.put(viewer.getUniqueId(), target.getUniqueId());
     }
 
     /**
@@ -107,9 +111,10 @@ public class ProfileModule implements Listener {
         // 最終行中央に閉じるボタン
         inv.setItem(LIST_SIZE - 5, buildCloseButton());
 
-        listViewers.add(viewer.getUniqueId());
-        profileViewers.remove(viewer.getUniqueId());
+        // openInventory が InventoryCloseEvent を発火して古い状態をクリアするため、
+        // 新しい状態の登録は openInventory の後に行う。
         viewer.openInventory(inv);
+        listViewers.add(viewer.getUniqueId());
     }
 
     public void shutdown() {
@@ -129,6 +134,7 @@ public class ProfileModule implements Listener {
         boolean inList    = listViewers.contains(uuid);
         if (!inProfile && !inList) return;
 
+        // 常にキャンセルしてアイテムの取得を防止
         event.setCancelled(true);
 
         ItemStack clicked = event.getCurrentItem();
@@ -155,15 +161,18 @@ public class ProfileModule implements Listener {
 
     private void handleProfileClick(Player viewer, int slot) {
         switch (slot) {
-            case SLOT_CLOSE -> viewer.closeInventory();
-            case SLOT_LIST  -> openPlayerList(viewer);
+            // 1tickの遅延でinventory操作を行い、イベントハンドラ内の競合を回避
+            case SLOT_CLOSE -> Bukkit.getScheduler().runTaskLater(plugin,
+                    viewer::closeInventory, 1L);
+            case SLOT_LIST  -> Bukkit.getScheduler().runTaskLater(plugin,
+                    () -> openPlayerList(viewer), 1L);
             default         -> { /* その他スロットは無視 */ }
         }
     }
 
     private void handleListClick(Player viewer, ItemStack clicked) {
         if (clicked.getType() == Material.BARRIER) {
-            viewer.closeInventory();
+            Bukkit.getScheduler().runTaskLater(plugin, viewer::closeInventory, 1L);
             return;
         }
         if (clicked.getType() != Material.PLAYER_HEAD) return;
@@ -178,7 +187,7 @@ public class ProfileModule implements Listener {
                     NamedTextColor.RED));
             return;
         }
-        openProfile(viewer, target);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> openProfile(viewer, target), 1L);
     }
 
     // -------------------------------------------------------------------------
@@ -256,7 +265,7 @@ public class ProfileModule implements Listener {
     }
 
     private ItemStack buildListButton() {
-        ItemStack item = new ItemStack(Material.COMPASS);
+        ItemStack item = new ItemStack(Material.BOOK);
         ItemMeta  meta = item.getItemMeta();
         meta.displayName(tip("&b&lプレイヤー一覧"));
         meta.lore(List.of(

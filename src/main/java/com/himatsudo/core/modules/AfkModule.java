@@ -178,7 +178,7 @@ public class AfkModule implements Listener {
         applyNameTag(player);
 
         String msg = resolve(plugin.getConfig()
-                .getString("afk.message-go", "&7[AFK] &f{player} &7が放置状態になりました。"),
+                .getString("afk.message-go", "&7{player} &7が放置状態になりました。"),
                 player);
         Bukkit.broadcast(parse(msg));
 
@@ -192,7 +192,7 @@ public class AfkModule implements Listener {
 
         if (broadcast) {
             String msg = resolve(plugin.getConfig()
-                    .getString("afk.message-return", "&7[AFK] &f{player} &7が放置から戻りました。"),
+                    .getString("afk.message-return", "&7{player} &7が放置から戻りました。"),
                     player);
             Bukkit.broadcast(parse(msg));
         }
