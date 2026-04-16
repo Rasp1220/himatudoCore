@@ -16,6 +16,11 @@ commands:
     description: Open the Nexus Menu
     usage: /menu
     permission: himatsudo.menu
+  profile:
+    description: プレイヤープロフィールを GUI で表示する
+    usage: /profile [player]
+    permission: himatsudo.profile
+    aliases: [prof]
 
 permissions:
   himatsudo.admin:
@@ -23,4 +28,7 @@ permissions:
     default: op
   himatsudo.menu:
     description: Access to /menu
+    default: true
+  himatsudo.profile:
+    description: Access to /profile command
     default: true

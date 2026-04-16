@@ -186,7 +186,11 @@ public class MenuModule implements Listener {
             }
             case "profile" -> {
                 player.closeInventory();
-                player.sendMessage(Component.text("プレイヤー: " + player.getName(), NamedTextColor.GOLD));
+                com.himatsudo.core.modules.ProfileModule pm = plugin.getProfileModule();
+                if (pm != null) {
+                    // インベントリ close の処理が完了してから新しい UI を開く
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> pm.openProfile(player, player), 1L);
+                }
             }
             case "close"   -> player.closeInventory();
             default        -> player.sendMessage(Component.text("不明なアクション: " + action, NamedTextColor.RED));
