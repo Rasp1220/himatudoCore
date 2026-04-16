@@ -163,7 +163,7 @@ public class ProfileModule implements Listener {
         switch (slot) {
             // 1tickの遅延でinventory操作を行い、イベントハンドラ内の競合を回避
             case SLOT_CLOSE -> Bukkit.getScheduler().runTaskLater(plugin,
-                    viewer::closeInventory, 1L);
+                    () -> viewer.closeInventory(), 1L);
             case SLOT_LIST  -> Bukkit.getScheduler().runTaskLater(plugin,
                     () -> openPlayerList(viewer), 1L);
             default         -> { /* その他スロットは無視 */ }
@@ -172,7 +172,7 @@ public class ProfileModule implements Listener {
 
     private void handleListClick(Player viewer, ItemStack clicked) {
         if (clicked.getType() == Material.BARRIER) {
-            Bukkit.getScheduler().runTaskLater(plugin, viewer::closeInventory, 1L);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> viewer.closeInventory(), 1L);
             return;
         }
         if (clicked.getType() != Material.PLAYER_HEAD) return;
