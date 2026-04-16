@@ -207,12 +207,12 @@ public class MenuModule implements Listener {
 
         meta.displayName(LegacyComponentSerializer.legacyAmpersand()
                 .deserialize(rawName)
-                .decoration(TextDecoration.ITALIC, false));
+                .decoration(TextDecoration.ITALIC, TextDecoration.State.FALSE));
 
         List<Component> lore = rawLore.stream()
                 .map(line -> (Component) LegacyComponentSerializer.legacyAmpersand()
                         .deserialize(line)
-                        .decoration(TextDecoration.ITALIC, false))
+                        .decoration(TextDecoration.ITALIC, TextDecoration.State.FALSE))
                 .toList();
         meta.lore(lore);
 

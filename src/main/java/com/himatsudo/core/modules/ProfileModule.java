@@ -294,9 +294,9 @@ public class ProfileModule implements Listener {
      * lore / displayName 用のツールチップテキストに使用する。
      */
     private Component tip(String raw) {
-        return (Component) LegacyComponentSerializer.legacyAmpersand()
+        return LegacyComponentSerializer.legacyAmpersand()
                 .deserialize(raw)
-                .decoration(TextDecoration.ITALIC, false);
+                .decoration(TextDecoration.ITALIC, TextDecoration.State.FALSE);
     }
 
     private Component parse(String raw) {
