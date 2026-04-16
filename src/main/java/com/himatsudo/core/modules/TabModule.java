@@ -9,26 +9,37 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.scheduler.BukkitTask;
+
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * TabModule — タブリスト表示管理 (Tab List unit).
  *
  * 機能:
  *   - ヘッダーにサーバー名・オンライン人数をリアルタイム表示
+ *   - フッターに現在のPing・JST時刻を1秒ごとに更新
  *   - 各エントリに [ランク] 名前 の形式で権限を表示
  *   - アクティブプレイヤー: 緑色 / AFK プレイヤー: 赤色 + [AFK] サフィックス
  *
  * 設定キー (config.yml の tab: セクション):
  *   tab.enabled — 機能 ON/OFF
  *   tab.header  — ヘッダー文字列 ({count} = オンライン人数 / \n で改行)
- *   tab.footer  — フッター文字列
+ *   tab.footer  — フッター下段に表示するサイト名等の静的テキスト
  *
  * AfkModule が AFK 状態を変化させるたびに refreshPlayer(Player) を呼び出すこと。
  */
 public class TabModule implements Listener {
 
+    private static final DateTimeFormatter TIME_FMT =
+            DateTimeFormatter.ofPattern("HH:mm:ss");
+    private static final ZoneId JST = ZoneId.of("Asia/Tokyo");
+
     private final HimatsudoCore plugin;
     private final boolean enabled;
+    private BukkitTask refreshTask;
 
     public TabModule(HimatsudoCore plugin) {
         this.plugin  = plugin;
@@ -36,6 +47,9 @@ public class TabModule implements Listener {
 
         if (enabled) {
             plugin.getServer().getPluginManager().registerEvents(this, plugin);
+            // 1秒ごとに全プレイヤーのヘッダー/フッター (Ping・時刻) を更新
+            refreshTask = plugin.getServer().getScheduler()
+                    .runTaskTimer(plugin, this::sendHeaderToAll, 20L, 20L);
             plugin.getLogger().info("[TabModule] Tab list management active.");
         } else {
             plugin.getLogger().info("[TabModule] Disabled via config.");
@@ -68,13 +82,14 @@ public class TabModule implements Listener {
     // -------------------------------------------------------------------------
 
     /**
-     * 指定プレイヤーのタブリスト表示名を更新する。
+     * 指定プレイヤーのタブリスト表示名とヘッダー/フッターを更新する。
      * AFK 状態が変化したとき AfkModule から呼び出される。
      * 必ずメインスレッドから呼ぶこと。
      */
     public void refreshPlayer(Player player) {
         if (!enabled) return;
         player.playerListName(buildEntry(player));
+        sendHeader(player);
     }
 
     /** 全プレイヤーのタブ名とヘッダーを再描画する (リロード時・起動時に使用)。 */
@@ -87,6 +102,7 @@ public class TabModule implements Listener {
     }
 
     public void shutdown() {
+        if (refreshTask != null && !refreshTask.isCancelled()) refreshTask.cancel();
         // デフォルト表示に戻す
         for (Player p : Bukkit.getOnlinePlayers()) {
             p.playerListName(null);
@@ -127,18 +143,32 @@ public class TabModule implements Listener {
         }
     }
 
+    /**
+     * プレイヤー個別にヘッダー/フッターを送信する。
+     * フッターには各プレイヤーの現在Pingとサーバー時刻(JST)を含む。
+     */
     private void sendHeader(Player player) {
-        int count = Bukkit.getOnlinePlayers().size();
+        int    count = Bukkit.getOnlinePlayers().size();
+        int    ping  = player.getPing();
+        String pingColor = ping < 50 ? "&a" : ping < 100 ? "&e" : ping < 150 ? "&6" : "&c";
+        String time  = ZonedDateTime.now(JST).format(TIME_FMT);
 
         String rawHeader = plugin.getConfig().getString(
                 "tab.header",
-                "&6&lHimatsudoSMP\n&7オンライン: &a{count}&7 人");
-        String rawFooter = plugin.getConfig().getString(
-                "tab.footer",
-                "&7himatsudo.net");
+                "&8&m━━━━━━━━━━━━━━━━━━━━━━━━━━&r\n  &6&lHimatsudoSMP  \n&7オンライン&8: &a{count}&7 人\n&8&m━━━━━━━━━━━━━━━━━━━━━━━━━━&r");
+
+        String staticFooter = plugin.getConfig().getString("tab.footer", "&7himatsudo.net");
 
         Component header = parse(rawHeader.replace("{count}", String.valueOf(count)));
-        Component footer = parse(rawFooter);
+
+        // フッターはPing・時刻を含む動的コンテンツ + 静的テキスト
+        String footerRaw = "&8&m━━━━━━━━━━━━━━━━━━━━━━━━━━&r\n"
+                + pingColor + "Ping&8: " + pingColor + ping + "ms  "
+                + "&8|  &e⏰ &7" + time + " &8(JST)\n"
+                + staticFooter + "\n"
+                + "&8&m━━━━━━━━━━━━━━━━━━━━━━━━━━&r";
+
+        Component footer = parse(footerRaw);
         player.sendPlayerListHeaderAndFooter(header, footer);
     }
 
