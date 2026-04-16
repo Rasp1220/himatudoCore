@@ -15,6 +15,8 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.List;
 import java.util.logging.Level;
 
 /**
@@ -77,42 +79,83 @@ public class DiscordModule implements Listener {
     }
 
     // -------------------------------------------------------------------------
-    // Webhook helper
+    // Webhook helpers
     // -------------------------------------------------------------------------
 
+    /** Discord Embed の 1 フィールドを表すレコード。SecurityAlertModule から利用する。 */
+    public record EmbedField(String name, String value, boolean inline) {}
+
+    /** 機能が有効かどうかを返す (SecurityAlertModule などから参照)。 */
+    public boolean isEnabled() { return enabled && !webhookUrl.isEmpty(); }
+
     /**
-     * Sends a plain-text message to the configured Discord webhook.
-     * Runs asynchronously to avoid blocking the main server thread.
-     *
-     * @param message the message to send
+     * プレーンテキストメッセージを Discord webhook へ送信する。
+     * 非同期実行のためメインスレッドをブロックしない。
      */
     public void sendMessage(String message) {
-        if (!enabled || webhookUrl.isEmpty()) return;
+        if (!isEnabled()) return;
+        sendRawPayload("{\"content\":\"" + escapeJson(message) + "\"}");
+    }
 
-        String jsonPayload = "{\"content\":\"" + escapeJson(message) + "\"}";
+    /**
+     * Discord Embed を送信する。SecurityAlertModule などのアラート用途で使用。
+     *
+     * @param title       Embed タイトル
+     * @param description Embed 説明文
+     * @param color       Embed 枠線色 (24bit RGB 整数、例: 0xFF0000 = 赤)
+     * @param fields      表示するフィールドのリスト
+     */
+    public void sendEmbed(String title, String description, int color,
+                          List<EmbedField> fields) {
+        if (!isEnabled()) return;
 
+        StringBuilder fb = new StringBuilder("[");
+        for (int i = 0; i < fields.size(); i++) {
+            EmbedField f = fields.get(i);
+            if (i > 0) fb.append(",");
+            fb.append("{\"name\":\"").append(escapeJson(f.name()))
+              .append("\",\"value\":\"").append(escapeJson(f.value()))
+              .append("\",\"inline\":").append(f.inline()).append("}");
+        }
+        fb.append("]");
+
+        String json = "{\"embeds\":[{"
+                + "\"title\":\""       + escapeJson(title)       + "\","
+                + "\"description\":\"" + escapeJson(description) + "\","
+                + "\"color\":"         + color                   + ","
+                + "\"fields\":"        + fb                      + ","
+                + "\"timestamp\":\""   + Instant.now()           + "\""
+                + "}]}";
+
+        sendRawPayload(json);
+    }
+
+    // -------------------------------------------------------------------------
+    // Internal
+    // -------------------------------------------------------------------------
+
+    private void sendRawPayload(String json) {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                HttpURLConnection connection = (HttpURLConnection) new URL(webhookUrl).openConnection();
-                connection.setRequestMethod("POST");
-                connection.setRequestProperty("Content-Type", "application/json");
-                connection.setDoOutput(true);
-                connection.setConnectTimeout(5000);
-                connection.setReadTimeout(5000);
+                HttpURLConnection conn = (HttpURLConnection) new URL(webhookUrl).openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setDoOutput(true);
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
 
-                try (OutputStream os = connection.getOutputStream()) {
-                    os.write(jsonPayload.getBytes(StandardCharsets.UTF_8));
+                try (OutputStream os = conn.getOutputStream()) {
+                    os.write(json.getBytes(StandardCharsets.UTF_8));
                 }
 
-                int responseCode = connection.getResponseCode();
-                if (responseCode < 200 || responseCode >= 300) {
-                    plugin.getLogger().warning(
-                            "[DiscordModule] Webhook returned HTTP " + responseCode);
+                int code = conn.getResponseCode();
+                if (code < 200 || code >= 300) {
+                    plugin.getLogger().warning("[DiscordModule] Webhook returned HTTP " + code);
                 }
-                connection.disconnect();
+                conn.disconnect();
             } catch (IOException e) {
                 plugin.getLogger().log(Level.WARNING,
-                        "[DiscordModule] Failed to send webhook message.", e);
+                        "[DiscordModule] Failed to send webhook payload.", e);
             }
         });
     }

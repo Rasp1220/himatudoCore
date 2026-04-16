@@ -2,6 +2,7 @@ package com.himatsudo.core;
 
 import com.himatsudo.core.commands.MainCommand;
 import com.himatsudo.core.commands.MenuCommand;
+import com.himatsudo.core.commands.ProfileCommand;
 import com.himatsudo.core.modules.AfkModule;
 import com.himatsudo.core.modules.AnnounceModule;
 import com.himatsudo.core.modules.BoardModule;
@@ -9,6 +10,8 @@ import com.himatsudo.core.modules.ChatModule;
 import com.himatsudo.core.modules.DiscordModule;
 import com.himatsudo.core.modules.JoinMessageModule;
 import com.himatsudo.core.modules.MenuModule;
+import com.himatsudo.core.modules.ProfileModule;
+import com.himatsudo.core.modules.SecurityAlertModule;
 import com.himatsudo.core.modules.TabModule;
 import com.himatsudo.core.modules.TextModule;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -31,7 +34,9 @@ public final class HimatsudoCore extends JavaPlugin {
     private TextModule        textModule;
     private JoinMessageModule joinMessageModule;
     private ChatModule        chatModule;
-    private TabModule         tabModule;
+    private TabModule            tabModule;
+    private ProfileModule        profileModule;
+    private SecurityAlertModule  securityAlertModule;
 
     @Override
     public void onEnable() {
@@ -64,7 +69,11 @@ public final class HimatsudoCore extends JavaPlugin {
         joinMessageModule = loadModule("JoinMessageModule", () -> new JoinMessageModule(this));
         chatModule        = loadModule("ChatModule",        () -> new ChatModule(this));
         // TabModule は ChatModule・AfkModule の後にロード (両方に依存するため)
-        tabModule         = loadModule("TabModule",         () -> new TabModule(this));
+        tabModule            = loadModule("TabModule",            () -> new TabModule(this));
+        // ProfileModule は ChatModule・AfkModule の後にロード
+        profileModule        = loadModule("ProfileModule",        () -> new ProfileModule(this));
+        // SecurityAlertModule は DiscordModule・ChatModule の後にロード
+        securityAlertModule  = loadModule("SecurityAlertModule",  () -> new SecurityAlertModule(this));
     }
 
     /**
@@ -84,7 +93,9 @@ public final class HimatsudoCore extends JavaPlugin {
     }
 
     private void unloadModules() {
-        if (tabModule         != null) tabModule.shutdown();
+        if (securityAlertModule != null) securityAlertModule.shutdown();
+        if (profileModule       != null) profileModule.shutdown();
+        if (tabModule           != null) tabModule.shutdown();
         if (afkModule         != null) afkModule.shutdown();
         if (textModule        != null) textModule.shutdown();
         if (joinMessageModule != null) joinMessageModule.shutdown();
@@ -102,6 +113,7 @@ public final class HimatsudoCore extends JavaPlugin {
     private void registerCommands() {
         getCommand("hc").setExecutor(new MainCommand(this));
         getCommand("menu").setExecutor(new MenuCommand(this));
+        getCommand("profile").setExecutor(new ProfileCommand(this));
     }
 
     // -------------------------------------------------------------------------
@@ -116,7 +128,9 @@ public final class HimatsudoCore extends JavaPlugin {
     public TextModule        getTextModule()        { return textModule; }
     public JoinMessageModule getJoinMessageModule() { return joinMessageModule; }
     public ChatModule        getChatModule()        { return chatModule; }
-    public TabModule         getTabModule()         { return tabModule; }
+    public TabModule            getTabModule()            { return tabModule; }
+    public ProfileModule        getProfileModule()        { return profileModule; }
+    public SecurityAlertModule  getSecurityAlertModule()  { return securityAlertModule; }
 
     // -------------------------------------------------------------------------
     // Internal helper
