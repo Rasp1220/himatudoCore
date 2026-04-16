@@ -193,9 +193,12 @@ public class AfkModule implements Listener {
         applyNameTag(player);
 
         String msg = resolve(plugin.getConfig()
-                .getString("afk.message-go", "&7[AFK] &f{player} が放置状態になりました。"),
+                .getString("afk.message-go", "&7[AFK] &f{player} &7が放置状態になりました。"),
                 player);
         Bukkit.broadcast(parse(msg));
+
+        // タブリストの表示を更新 (メインスレッドが保証されている)
+        notifyTabModule(player);
     }
 
     private void removeAfkStatus(Player player, boolean broadcast) {
@@ -204,10 +207,18 @@ public class AfkModule implements Listener {
 
         if (broadcast) {
             String msg = resolve(plugin.getConfig()
-                    .getString("afk.message-return", "&7[AFK] &f{player} が放置から戻りました。"),
+                    .getString("afk.message-return", "&7[AFK] &f{player} &7が放置から戻りました。"),
                     player);
             Bukkit.broadcast(parse(msg));
         }
+
+        // タブリストの表示を更新 (非同期スレッドから呼ばれる可能性があるためスケジュール)
+        plugin.getServer().getScheduler().runTask(plugin, () -> notifyTabModule(player));
+    }
+
+    private void notifyTabModule(Player player) {
+        TabModule tm = plugin.getTabModule();
+        if (tm != null) tm.refreshPlayer(player);
     }
 
     /**
@@ -335,6 +346,11 @@ public class AfkModule implements Listener {
     }
 
     private String resolve(String template, Player player) {
-        return template.replace("{player}", player.getName());
+        // ChatModule が有効な場合はランクプレフィックスをプレイヤー名の前に付ける
+        ChatModule cm = plugin.getChatModule();
+        String playerDisplay = cm != null
+                ? cm.getRankPrefix(player) + " &f" + player.getName()
+                : player.getName();
+        return template.replace("{player}", playerDisplay);
     }
 }

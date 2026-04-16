@@ -9,6 +9,7 @@ import com.himatsudo.core.modules.ChatModule;
 import com.himatsudo.core.modules.DiscordModule;
 import com.himatsudo.core.modules.JoinMessageModule;
 import com.himatsudo.core.modules.MenuModule;
+import com.himatsudo.core.modules.TabModule;
 import com.himatsudo.core.modules.TextModule;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -30,6 +31,7 @@ public final class HimatsudoCore extends JavaPlugin {
     private TextModule        textModule;
     private JoinMessageModule joinMessageModule;
     private ChatModule        chatModule;
+    private TabModule         tabModule;
 
     @Override
     public void onEnable() {
@@ -61,6 +63,8 @@ public final class HimatsudoCore extends JavaPlugin {
         textModule        = loadModule("TextModule",        () -> new TextModule(this));
         joinMessageModule = loadModule("JoinMessageModule", () -> new JoinMessageModule(this));
         chatModule        = loadModule("ChatModule",        () -> new ChatModule(this));
+        // TabModule は ChatModule・AfkModule の後にロード (両方に依存するため)
+        tabModule         = loadModule("TabModule",         () -> new TabModule(this));
     }
 
     /**
@@ -80,6 +84,7 @@ public final class HimatsudoCore extends JavaPlugin {
     }
 
     private void unloadModules() {
+        if (tabModule         != null) tabModule.shutdown();
         if (afkModule         != null) afkModule.shutdown();
         if (textModule        != null) textModule.shutdown();
         if (joinMessageModule != null) joinMessageModule.shutdown();
@@ -111,6 +116,7 @@ public final class HimatsudoCore extends JavaPlugin {
     public TextModule        getTextModule()        { return textModule; }
     public JoinMessageModule getJoinMessageModule() { return joinMessageModule; }
     public ChatModule        getChatModule()        { return chatModule; }
+    public TabModule         getTabModule()         { return tabModule; }
 
     // -------------------------------------------------------------------------
     // Internal helper

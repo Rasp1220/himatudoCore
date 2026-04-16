@@ -112,6 +112,15 @@ public class ChatModule implements Listener {
     // ライフサイクル
     // -------------------------------------------------------------------------
 
+    /**
+     * 指定プレイヤーのランクプレフィックスを "&c[ランク名]&r" 形式で返す。
+     * AfkModule・TabModule などから利用する。
+     */
+    public String getRankPrefix(Player player) {
+        Rank rank = resolveRank(player);
+        return rank.prefixColor() + "[" + rank.name() + "]&r";
+    }
+
     public void reload() {
         loadRanks();
         plugin.getLogger().info("[ChatModule] Reloaded. Ranks: " + ranks.size());
