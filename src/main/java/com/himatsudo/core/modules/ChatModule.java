@@ -130,9 +130,11 @@ public class ChatModule implements Listener {
 
         List<Map<?, ?>> rankList = plugin.getConfig().getMapList("chat.ranks");
         for (Map<?, ?> entry : rankList) {
-            String name        = String.valueOf(entry.getOrDefault("name",         "一般"));
-            String permission  = String.valueOf(entry.getOrDefault("permission",   ""));
-            String prefixColor = String.valueOf(entry.getOrDefault("prefix-color", "&7"));
+            // Map<?,?> wildcards prevent passing a String to getOrDefault's default-value
+            // parameter in Java 21 — use get() + null check instead.
+            String name        = mapGet(entry, "name",         "一般");
+            String permission  = mapGet(entry, "permission",   "");
+            String prefixColor = mapGet(entry, "prefix-color", "&7");
             ranks.add(new Rank(name, permission, prefixColor));
         }
 
@@ -147,5 +149,10 @@ public class ChatModule implements Listener {
                 "&#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])",
                 "&x&$1&$2&$3&$4&$5&$6");
         return LegacyComponentSerializer.legacyAmpersand().deserialize(raw);
+    }
+
+    private static String mapGet(Map<?, ?> map, String key, String defaultValue) {
+        Object v = map.get(key);
+        return v != null ? String.valueOf(v) : defaultValue;
     }
 }

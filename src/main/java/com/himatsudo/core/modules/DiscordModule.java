@@ -1,6 +1,8 @@
 package com.himatsudo.core.modules;
 
 import com.himatsudo.core.HimatsudoCore;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -67,8 +69,9 @@ public class DiscordModule implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerDeath(PlayerDeathEvent event) {
         if (!enabled || !plugin.getConfig().getBoolean("discord.notify-death", false)) return;
-        String deathMsg = event.getDeathMessage() != null
-                ? event.getDeathMessage()
+        Component deathComponent = event.deathMessage();
+        String deathMsg = deathComponent != null
+                ? LegacyComponentSerializer.legacySection().serialize(deathComponent)
                 : event.getEntity().getName() + " が死亡しました。";
         sendMessage(":skull: " + deathMsg);
     }

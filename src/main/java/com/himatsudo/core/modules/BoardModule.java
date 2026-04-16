@@ -172,13 +172,14 @@ public class BoardModule implements Listener {
 
     private void applyLines(Objective objective, Map<String, Integer> lines) {
         lines.forEach((rawLine, score) -> {
+            // Translate & colour codes to § so the client renders colours in the
+            // score-entry name (Score.customName(Component) is not available in
+            // the paper-api 1.21.1-R0.1-SNAPSHOT we compile against).
             Component lineComponent = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
                     .legacyAmpersand().deserialize(rawLine);
-            Score entry = objective.getScore(rawLine);
-            entry.setScore(score);
-            objective.getScoreboard().resetScores(rawLine);
-            Score s = objective.getScore(rawLine);
-            s.customName(lineComponent);
+            String legacyLine = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+                    .legacySection().serialize(lineComponent);
+            Score s = objective.getScore(legacyLine);
             s.setScore(score);
         });
     }

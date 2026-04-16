@@ -206,7 +206,7 @@ public class MenuModule implements Listener {
                 .decoration(TextDecoration.ITALIC, false));
 
         List<Component> lore = rawLore.stream()
-                .map(line -> LegacyComponentSerializer.legacyAmpersand()
+                .map(line -> (Component) LegacyComponentSerializer.legacyAmpersand()
                         .deserialize(line)
                         .decoration(TextDecoration.ITALIC, false))
                 .toList();
