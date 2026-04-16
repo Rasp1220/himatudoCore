@@ -34,7 +34,6 @@ import java.util.UUID;
  *   - 移行・復帰時にサーバー全体チャットへ通知
  *   - スコアボードチームAPIで他プレイヤーから見た頭上の名前に
  *     [AFK] プレフィックスを表示
- *   - 段階的タイムドメッセージ（例: 5分後・10分後）
  *
  * 設定キー (config.yml の afk: セクション):
  *   afk.enabled              — 機能ON/OFF
@@ -43,7 +42,6 @@ import java.util.UUID;
  *   afk.message-go           — 放置移行時のメッセージ ({player} 置換可)
  *   afk.message-return       — 復帰時のメッセージ ({player} 置換可)
  *   afk.display-prefix       — 頭上に表示するプレフィックス
- *   afk.timed-messages       — 段階通知リスト (seconds / message)
  */
 public class AfkModule implements Listener {
 
@@ -58,12 +56,6 @@ public class AfkModule implements Listener {
 
     /** 現在 AFK 状態のプレイヤー */
     private final Set<UUID> afkPlayers = new HashSet<>();
-
-    /**
-     * 段階メッセージ送信済みフラグ
-     * UUID -> 既に送信した seconds 閾値の集合
-     */
-    private final Map<UUID, Set<Integer>> sentTimedMessages = new HashMap<>();
 
     private BukkitTask checkTask;
 
@@ -152,7 +144,6 @@ public class AfkModule implements Listener {
         UUID uuid = event.getPlayer().getUniqueId();
         removeAfkStatus(event.getPlayer(), false);
         lastActivity.remove(uuid);
-        sentTimedMessages.remove(uuid);
     }
 
     // -------------------------------------------------------------------------
@@ -170,18 +161,12 @@ public class AfkModule implements Listener {
             if (idleMs >= timeoutMs && !afkPlayers.contains(uuid)) {
                 applyAfkStatus(player);
             }
-
-            // 段階的メッセージ — すでに AFK の場合のみ
-            if (afkPlayers.contains(uuid)) {
-                checkTimedMessages(player, (int) (idleMs / 1000L));
-            }
         }
     }
 
     private void markActivity(Player player) {
         UUID uuid = player.getUniqueId();
         lastActivity.put(uuid, System.currentTimeMillis());
-        sentTimedMessages.remove(uuid);
 
         if (afkPlayers.contains(uuid)) {
             removeAfkStatus(player, true);
@@ -219,35 +204,6 @@ public class AfkModule implements Listener {
     private void notifyTabModule(Player player) {
         TabModule tm = plugin.getTabModule();
         if (tm != null) tm.refreshPlayer(player);
-    }
-
-    /**
-     * 段階的タイムドメッセージを確認・送信する。
-     * config の afk.timed-messages リストを上から評価し、
-     * 閾値を超えていてまだ未送信なら全体放送する。
-     */
-    private void checkTimedMessages(Player player, int idleSeconds) {
-        var entries = plugin.getConfig().getMapList("afk.timed-messages");
-        Set<Integer> sent = sentTimedMessages.computeIfAbsent(
-                player.getUniqueId(), k -> new HashSet<>());
-
-        for (var entry : entries) {
-            Object secObj = entry.get("seconds");
-            Object msgObj = entry.get("message");
-            if (secObj == null || msgObj == null) continue;
-
-            int threshold;
-            try {
-                threshold = Integer.parseInt(secObj.toString());
-            } catch (NumberFormatException e) {
-                continue;
-            }
-
-            if (idleSeconds >= threshold && sent.add(threshold)) {
-                String msg = resolve(msgObj.toString(), player);
-                Bukkit.broadcast(parse(msg));
-            }
-        }
     }
 
     // -------------------------------------------------------------------------
