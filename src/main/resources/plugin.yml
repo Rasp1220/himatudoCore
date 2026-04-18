@@ -21,6 +21,10 @@ commands:
     usage: /profile [player]
     permission: himatsudo.profile
     aliases: [prof]
+  board:
+    description: サイドバースコアボードの表示/非表示を切り替える
+    usage: /board
+    permission: himatsudo.board
 
 permissions:
   himatsudo.admin:
@@ -31,4 +35,7 @@ permissions:
     default: true
   himatsudo.profile:
     description: Access to /profile command
+    default: true
+  himatsudo.board:
+    description: Access to /board command
     default: true

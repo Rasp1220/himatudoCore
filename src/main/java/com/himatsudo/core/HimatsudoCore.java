@@ -1,5 +1,6 @@
 package com.himatsudo.core;
 
+import com.himatsudo.core.commands.BoardCommand;
 import com.himatsudo.core.commands.MainCommand;
 import com.himatsudo.core.commands.MenuCommand;
 import com.himatsudo.core.commands.ProfileCommand;
@@ -114,6 +115,7 @@ public final class HimatsudoCore extends JavaPlugin {
         getCommand("hc").setExecutor(new MainCommand(this));
         getCommand("menu").setExecutor(new MenuCommand(this));
         getCommand("profile").setExecutor(new ProfileCommand(this));
+        getCommand("board").setExecutor(new BoardCommand(this));
     }
 
     // -------------------------------------------------------------------------

@@ -13,6 +13,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -137,7 +138,7 @@ public class DiscordModule implements Listener {
     private void sendRawPayload(String json) {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                HttpURLConnection conn = (HttpURLConnection) new URL(webhookUrl).openConnection();
+                HttpURLConnection conn = (HttpURLConnection) URI.create(webhookUrl).toURL().openConnection();
                 conn.setRequestMethod("POST");
                 conn.setRequestProperty("Content-Type", "application/json");
                 conn.setDoOutput(true);

@@ -1,8 +1,7 @@
 package com.himatsudo.core.modules;
 
 import com.himatsudo.core.HimatsudoCore;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import com.himatsudo.core.util.Fmt;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.List;
@@ -68,8 +67,7 @@ public class AnnounceModule {
         String raw = messages.get(messageIndex % messages.size());
         messageIndex = (messageIndex + 1) % messages.size();
 
-        Component component = LegacyComponentSerializer.legacyAmpersand().deserialize(raw);
-        plugin.getServer().broadcast(component);
+        plugin.getServer().broadcast(Fmt.parse(raw));
     }
 
     // -------------------------------------------------------------------------
