@@ -11,19 +11,6 @@ commands:
     description: HimatsudoCore メインコマンド
     usage: /hc <menu|profile|board|reload|status|version|text|help>
     aliases: [himatsudo, himatsudocore]
-  menu:
-    description: Open the Nexus Menu
-    usage: /menu
-    permission: himatsudo.menu
-  profile:
-    description: プレイヤープロフィールを GUI で表示する
-    usage: /profile [player]
-    permission: himatsudo.profile
-    aliases: [prof]
-  board:
-    description: サイドバースコアボードの表示/非表示を切り替える
-    usage: /board
-    permission: himatsudo.board
 
 permissions:
   himatsudo.admin:
