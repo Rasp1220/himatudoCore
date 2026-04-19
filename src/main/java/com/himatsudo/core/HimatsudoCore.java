@@ -42,6 +42,7 @@ public final class HimatsudoCore extends JavaPlugin {
 
         loadModules();
         registerCommands();
+        if (discordModule != null) discordModule.notifyServerStart();
 
         getLogger().info("HimatsudoCore enabled successfully.");
     }

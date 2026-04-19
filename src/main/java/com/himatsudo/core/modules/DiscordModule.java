@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
@@ -24,14 +23,13 @@ import java.util.logging.Level;
  * DiscordModule — bridges in-game events to a Discord webhook.
  *
  * Configuration keys (under discord: in config.yml):
- *   discord.enabled       — master toggle
- *   discord.webhook-url   — Discord webhook URL
- *   discord.notify-join   — notify on player join
- *   discord.notify-quit   — notify on player quit
- *   discord.notify-death  — notify on player death
- *
- * To add a new notification type, add an @EventHandler method below
- * and call sendMessage() with the desired payload.
+ *   discord.enabled        — master toggle
+ *   discord.webhook-url    — Discord webhook URL
+ *   discord.notify-start   — notify on server start
+ *   discord.notify-stop    — notify on server stop
+ *   discord.notify-join    — notify on player join
+ *   discord.notify-quit    — notify on player quit
+ *   discord.notify-death   — notify on player death
  */
 public class DiscordModule implements Listener {
 
@@ -136,29 +134,37 @@ public class DiscordModule implements Listener {
     // -------------------------------------------------------------------------
 
     private void sendRawPayload(String json) {
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                HttpURLConnection conn = (HttpURLConnection) URI.create(webhookUrl).toURL().openConnection();
-                conn.setRequestMethod("POST");
-                conn.setRequestProperty("Content-Type", "application/json");
-                conn.setDoOutput(true);
-                conn.setConnectTimeout(5000);
-                conn.setReadTimeout(5000);
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin,
+                () -> postJson(json));
+    }
 
-                try (OutputStream os = conn.getOutputStream()) {
-                    os.write(json.getBytes(StandardCharsets.UTF_8));
-                }
+    /** サーバー停止時など、スケジューラーが使えない場面で呼ぶ同期版。 */
+    private void sendRawPayloadSync(String json) {
+        postJson(json);
+    }
 
-                int code = conn.getResponseCode();
-                if (code < 200 || code >= 300) {
-                    plugin.getLogger().warning("[DiscordModule] Webhook returned HTTP " + code);
-                }
-                conn.disconnect();
-            } catch (IOException e) {
-                plugin.getLogger().log(Level.WARNING,
-                        "[DiscordModule] Failed to send webhook payload.", e);
+    private void postJson(String json) {
+        try {
+            HttpURLConnection conn = (HttpURLConnection) URI.create(webhookUrl).toURL().openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setDoOutput(true);
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(5000);
+
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(json.getBytes(StandardCharsets.UTF_8));
             }
-        });
+
+            int code = conn.getResponseCode();
+            if (code < 200 || code >= 300) {
+                plugin.getLogger().warning("[DiscordModule] Webhook returned HTTP " + code);
+            }
+            conn.disconnect();
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.WARNING,
+                    "[DiscordModule] Failed to send webhook payload.", e);
+        }
     }
 
     private String escapeJson(String text) {
@@ -168,7 +174,23 @@ public class DiscordModule implements Listener {
                    .replace("\r", "\\r");
     }
 
+    // -------------------------------------------------------------------------
+    // Server lifecycle notifications
+    // -------------------------------------------------------------------------
+
+    /** onEnable() 後に呼ぶ。スケジューラーが使えるので非同期送信。 */
+    public void notifyServerStart() {
+        if (!isEnabled() || !plugin.getConfig().getBoolean("discord.notify-start", true)) return;
+        sendMessage(":white_check_mark: **サーバーが起動しました。**");
+    }
+
+    /** onDisable() 中に呼ぶ。スケジューラーが停止しているため同期送信。 */
+    public void notifyServerStop() {
+        if (!isEnabled() || !plugin.getConfig().getBoolean("discord.notify-stop", true)) return;
+        sendRawPayloadSync("{\"content\":\":octagonal_sign: **サーバーが停止します。**\"}");
+    }
+
     public void shutdown() {
-        // Listener unregistration is handled automatically by Bukkit on plugin disable.
+        notifyServerStop();
     }
 }
