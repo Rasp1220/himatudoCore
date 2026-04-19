@@ -8,9 +8,8 @@ website: https://himatsudo.net
 
 commands:
   hc:
-    description: HimatsudoCore admin command
-    usage: /hc <reload|status|version|help>
-    permission: himatsudo.admin
+    description: HimatsudoCore メインコマンド
+    usage: /hc <menu|profile|board|reload|status|version|text|help>
     aliases: [himatsudo, himatsudocore]
   menu:
     description: Open the Nexus Menu
