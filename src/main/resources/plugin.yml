@@ -17,11 +17,11 @@ permissions:
     description: Access to /hc admin commands
     default: op
   himatsudo.menu:
-    description: Access to /menu
+    description: Access to /hc menu
     default: true
   himatsudo.profile:
-    description: Access to /profile command
+    description: Access to /hc profile
     default: true
   himatsudo.board:
-    description: Access to /board command
+    description: Access to /hc board
     default: true
