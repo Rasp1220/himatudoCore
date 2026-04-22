@@ -8,27 +8,20 @@ website: https://himatsudo.net
 
 commands:
   hc:
-    description: HimatsudoCore admin command
-    usage: /hc <reload|status|version|help>
-    permission: himatsudo.admin
+    description: HimatsudoCore メインコマンド
+    usage: /hc <menu|profile|board|reload|status|text|help>
     aliases: [himatsudo, himatsudocore]
-  menu:
-    description: Open the Nexus Menu
-    usage: /menu
-    permission: himatsudo.menu
-  profile:
-    description: プレイヤープロフィールを GUI で表示する
-    usage: /profile [player]
-    permission: himatsudo.profile
-    aliases: [prof]
 
 permissions:
   himatsudo.admin:
     description: Access to /hc admin commands
     default: op
   himatsudo.menu:
-    description: Access to /menu
+    description: Access to /hc menu
     default: true
   himatsudo.profile:
-    description: Access to /profile command
+    description: Access to /hc profile
+    default: true
+  himatsudo.board:
+    description: Access to /hc board
     default: true

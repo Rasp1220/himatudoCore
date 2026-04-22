@@ -97,11 +97,17 @@ public class ChatModule implements Listener {
      * どのランクにもマッチしない場合はデフォルトランクを返す。
      */
     private Rank resolveRank(Player player) {
+        // OP は権限プラグインの設定に関わらず常に先頭ランク(管理者)を付与
+        if (player.isOp()) {
+            return ranks.stream()
+                    .filter(r -> !r.permission().isEmpty())
+                    .findFirst()
+                    .orElse(new Rank("管理者", "himatsudo.admin", "&c"));
+        }
         for (Rank rank : ranks) {
-            if (rank.permission().isEmpty()) continue; // デフォルトは最後
+            if (rank.permission().isEmpty()) continue;
             if (player.hasPermission(rank.permission())) return rank;
         }
-        // permission が空 = デフォルトランク
         return ranks.stream()
                 .filter(r -> r.permission().isEmpty())
                 .findFirst()

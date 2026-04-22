@@ -1,8 +1,8 @@
 package com.himatsudo.core.modules;
 
 import com.himatsudo.core.HimatsudoCore;
+import com.himatsudo.core.util.Fmt;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -27,34 +27,20 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * AfkModule — AFK status tracker (独立モジュール ⑤).
+ * AfkModule — idle detection and AFK status management.
  *
- * 機能:
- *   - 設定秒数の無操作でプレイヤーを放置状態に移行
- *   - 移行・復帰時にサーバー全体チャットへ通知
- *   - スコアボードチームAPIで他プレイヤーから見た頭上の名前に
- *     [AFK] プレフィックスを表示
- *
- * 設定キー (config.yml の afk: セクション):
- *   afk.enabled              — 機能ON/OFF
- *   afk.timeout-seconds      — 放置判定までの秒数 (デフォルト: 20)
- *   afk.check-interval-ticks — 判定タスクの実行間隔 (デフォルト: 100)
- *   afk.message-go           — 放置移行時のメッセージ ({player} 置換可)
- *   afk.message-return       — 復帰時のメッセージ ({player} 置換可)
- *   afk.display-prefix       — 頭上に表示するプレフィックス
+ * Marks players as AFK after a configurable period of inactivity,
+ * announces the state change, applies a nametag prefix via scoreboard teams,
+ * and notifies TabModule to update the player's tab entry.
  */
 public class AfkModule implements Listener {
 
-    /** Scoreboard team name — 他プラグインと衝突しない固有名 */
     private static final String TEAM_NAME = "hc_afk";
 
     private final HimatsudoCore plugin;
     private final boolean enabled;
 
-    /** 最終アクティビティ時刻 (UUID -> epoch ms) */
     private final Map<UUID, Long> lastActivity = new HashMap<>();
-
-    /** 現在 AFK 状態のプレイヤー */
     private final Set<UUID> afkPlayers = new HashSet<>();
 
     private BukkitTask checkTask;
@@ -84,7 +70,6 @@ public class AfkModule implements Listener {
 
     public void shutdown() {
         if (checkTask != null && !checkTask.isCancelled()) checkTask.cancel();
-        // サーバー停止時はサイレントに AFK 解除
         for (UUID uuid : new HashSet<>(afkPlayers)) {
             Player p = Bukkit.getPlayer(uuid);
             if (p != null) removeAfkStatus(p, false);
@@ -98,19 +83,17 @@ public class AfkModule implements Listener {
     }
 
     // -------------------------------------------------------------------------
-    // Activity detection — 操作を検知したらタイマーをリセット
+    // Activity detection
     // -------------------------------------------------------------------------
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onMove(PlayerMoveEvent event) {
-        // 頭の向きだけの変化は除外 — ブロック座標が変わった場合のみ
         Location from = event.getFrom();
         Location to   = event.getTo();
         if (to == null) return;
         if (from.getBlockX() == to.getBlockX()
                 && from.getBlockY() == to.getBlockY()
                 && from.getBlockZ() == to.getBlockZ()) return;
-
         markActivity(event.getPlayer());
     }
 
@@ -147,17 +130,15 @@ public class AfkModule implements Listener {
     }
 
     // -------------------------------------------------------------------------
-    // AFK 判定ロジック
+    // AFK state logic
     // -------------------------------------------------------------------------
 
     private void runCheck() {
         long timeoutMs = plugin.getConfig().getLong("afk.timeout-seconds", 20L) * 1000L;
-
         for (Player player : Bukkit.getOnlinePlayers()) {
             UUID uuid   = player.getUniqueId();
             long idleMs = System.currentTimeMillis()
                     - lastActivity.getOrDefault(uuid, System.currentTimeMillis());
-
             if (idleMs >= timeoutMs && !afkPlayers.contains(uuid)) {
                 applyAfkStatus(player);
             }
@@ -165,10 +146,8 @@ public class AfkModule implements Listener {
     }
 
     private void markActivity(Player player) {
-        UUID uuid = player.getUniqueId();
-        lastActivity.put(uuid, System.currentTimeMillis());
-
-        if (afkPlayers.contains(uuid)) {
+        lastActivity.put(player.getUniqueId(), System.currentTimeMillis());
+        if (afkPlayers.contains(player.getUniqueId())) {
             removeAfkStatus(player, true);
         }
     }
@@ -178,11 +157,9 @@ public class AfkModule implements Listener {
         applyNameTag(player);
 
         String msg = resolve(plugin.getConfig()
-                .getString("afk.message-go", "&7{player} &7が放置状態になりました。"),
-                player);
-        Bukkit.broadcast(parse(msg));
+                .getString("afk.message-go", "&7{player} &7が放置状態になりました。"), player);
+        Bukkit.broadcast(Fmt.parse(msg));
 
-        // タブリストの表示を更新 (メインスレッドが保証されている)
         notifyTabModule(player);
     }
 
@@ -192,12 +169,10 @@ public class AfkModule implements Listener {
 
         if (broadcast) {
             String msg = resolve(plugin.getConfig()
-                    .getString("afk.message-return", "&7{player} &7が放置から戻りました。"),
-                    player);
-            Bukkit.broadcast(parse(msg));
+                    .getString("afk.message-return", "&7{player} &7が放置から戻りました。"), player);
+            Bukkit.broadcast(Fmt.parse(msg));
         }
 
-        // タブリストの表示を更新 (非同期スレッドから呼ばれる可能性があるためスケジュール)
         plugin.getServer().getScheduler().runTask(plugin, () -> notifyTabModule(player));
     }
 
@@ -207,15 +182,9 @@ public class AfkModule implements Listener {
     }
 
     // -------------------------------------------------------------------------
-    // スコアボードチームによる頭上プレフィックス管理
+    // Scoreboard team nametag management
     // -------------------------------------------------------------------------
 
-    /**
-     * 新しいスコアボードに対して AFK チームを登録し、
-     * 現在 AFK 中のプレイヤーを全員そのチームに追加する。
-     *
-     * BoardModule が新しいスコアボードを生成するたびに呼び出すこと。
-     */
     public void syncAfkPlayersToScoreboard(Scoreboard scoreboard) {
         ensureTeam(scoreboard);
         for (UUID uuid : afkPlayers) {
@@ -225,46 +194,31 @@ public class AfkModule implements Listener {
     }
 
     private void applyNameTag(Player target) {
-        // メインスコアボード
         applyTeamEntry(Bukkit.getScoreboardManager().getMainScoreboard(), target.getName(), true);
-
-        // BoardModule が管理するカスタムスコアボード
         BoardModule bm = plugin.getBoardModule();
         if (bm != null) {
-            for (Scoreboard sb : bm.getActiveScoreboards()) {
-                applyTeamEntry(sb, target.getName(), true);
-            }
+            for (Scoreboard sb : bm.getActiveScoreboards()) applyTeamEntry(sb, target.getName(), true);
         }
     }
 
     private void removeNameTag(Player target) {
         applyTeamEntry(Bukkit.getScoreboardManager().getMainScoreboard(), target.getName(), false);
-
         BoardModule bm = plugin.getBoardModule();
         if (bm != null) {
-            for (Scoreboard sb : bm.getActiveScoreboards()) {
-                applyTeamEntry(sb, target.getName(), false);
-            }
+            for (Scoreboard sb : bm.getActiveScoreboards()) applyTeamEntry(sb, target.getName(), false);
         }
     }
 
     private void applyTeamEntry(Scoreboard sb, String entry, boolean add) {
         Team team = ensureTeam(sb);
-        if (add) {
-            team.addEntry(entry);
-        } else {
-            team.removeEntry(entry);
-        }
+        if (add) team.addEntry(entry);
+        else     team.removeEntry(entry);
     }
 
     private Team ensureTeam(Scoreboard sb) {
         Team team = sb.getTeam(TEAM_NAME);
-        if (team == null) {
-            team = sb.registerNewTeam(TEAM_NAME);
-        }
-        // プレフィックスを常に最新の config 値に更新
-        String rawPrefix = plugin.getConfig().getString("afk.display-prefix", "&7[AFK] ");
-        team.prefix(parse(rawPrefix));
+        if (team == null) team = sb.registerNewTeam(TEAM_NAME);
+        team.prefix(Fmt.parse(plugin.getConfig().getString("afk.display-prefix", "&7[AFK] ")));
         return team;
     }
 
@@ -282,7 +236,7 @@ public class AfkModule implements Listener {
     }
 
     // -------------------------------------------------------------------------
-    // 公開 API
+    // Public API
     // -------------------------------------------------------------------------
 
     public boolean isAfk(Player player) {
@@ -294,15 +248,10 @@ public class AfkModule implements Listener {
     }
 
     // -------------------------------------------------------------------------
-    // ユーティリティ
+    // Helpers
     // -------------------------------------------------------------------------
 
-    private Component parse(String raw) {
-        return LegacyComponentSerializer.legacyAmpersand().deserialize(raw);
-    }
-
     private String resolve(String template, Player player) {
-        // ChatModule が有効な場合はランクプレフィックスをプレイヤー名の前に付ける
         ChatModule cm = plugin.getChatModule();
         String playerDisplay = cm != null
                 ? cm.getRankPrefix(player) + " &f" + player.getName()

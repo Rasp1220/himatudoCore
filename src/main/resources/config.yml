@@ -15,6 +15,8 @@ discord:
   webhook-url: ""
 
   # 通知する種別を個別に制御できます
+  notify-start: true   # サーバー起動通知
+  notify-stop:  true   # サーバー停止通知
   notify-join:  true   # プレイヤー参加通知
   notify-quit:  true   # プレイヤー退出通知
   notify-death: false  # プレイヤー死亡通知
@@ -36,7 +38,7 @@ announce:
     - "&6&l[Himatsudo] &fサーバーへようこそ！楽しいひとときをお過ごしください。"
     - "&a&l[Himatsudo] &fルールを守って楽しくプレイしましょう！"
     - "&b&l[Himatsudo] &f不具合・要望はスタッフまでお知らせください。"
-    - "&e&l[Himatsudo] &f/menu でメニューを開けます。"
+    - "&e&l[Himatsudo] &f/hc menu でメニューを開けます。"
 
 # ------------------------------------------------------------
 # ③ Overlay Board ユニット (スコアボード)

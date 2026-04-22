@@ -1,8 +1,6 @@
 package com.himatsudo.core;
 
 import com.himatsudo.core.commands.MainCommand;
-import com.himatsudo.core.commands.MenuCommand;
-import com.himatsudo.core.commands.ProfileCommand;
 import com.himatsudo.core.modules.AfkModule;
 import com.himatsudo.core.modules.AnnounceModule;
 import com.himatsudo.core.modules.BoardModule;
@@ -44,6 +42,7 @@ public final class HimatsudoCore extends JavaPlugin {
 
         loadModules();
         registerCommands();
+        if (discordModule != null) discordModule.notifyServerStart();
 
         getLogger().info("HimatsudoCore enabled successfully.");
     }
@@ -112,8 +111,6 @@ public final class HimatsudoCore extends JavaPlugin {
 
     private void registerCommands() {
         getCommand("hc").setExecutor(new MainCommand(this));
-        getCommand("menu").setExecutor(new MenuCommand(this));
-        getCommand("profile").setExecutor(new ProfileCommand(this));
     }
 
     // -------------------------------------------------------------------------
