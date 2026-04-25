@@ -1,0 +1,13 @@
+# HimatsudoNpc - config.yml
+
+# ポイント獲得設定
+currency:
+  # プレイ中に獲得するポイント (interval ごとに加算)
+  points-per-interval: 1
+  # ポイント付与の間隔 (ticks, 1200 = 1分)
+  interval-ticks: 1200
+
+# サーバー移動設定
+server-transfer:
+  # 移動前にプレイヤーへ表示するメッセージ (&カラーコード使用可)
+  connecting-message: "&7サーバーに接続中..."

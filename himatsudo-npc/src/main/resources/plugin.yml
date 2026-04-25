@@ -1,0 +1,22 @@
+name: HimatsudoNpc
+version: '${project.version}'
+main: com.himatsudo.npc.HimatsudoNpc
+api-version: '1.21'
+description: Citizens NPC integration for Himatsudo server
+authors: [Himatsudo]
+depend: [Citizens]
+
+commands:
+  hnpc:
+    description: NPC管理コマンド
+    usage: /hnpc <assign|unassign|list|reload|points>
+    permission: hnpc.admin
+    aliases: [himatsudo-npc]
+
+permissions:
+  hnpc.admin:
+    description: NPC管理コマンドへのアクセス
+    default: op
+  hnpc.use:
+    description: NPCを右クリックして使用
+    default: true
