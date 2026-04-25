@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -57,9 +58,10 @@ public class MainCommand implements CommandExecutor, TabCompleter {
             case "menu"    -> handleMenu(sender);
             case "profile" -> handleProfile(sender, args);
             case "board"   -> handleBoard(sender);
-            case "reload"  -> { if (checkAdmin(sender)) handleReload(sender); }
-            case "status"  -> { if (checkAdmin(sender)) handleStatus(sender); }
-            case "text"    -> { if (checkAdmin(sender)) textCommand.handle(sender, args); }
+            case "reload"   -> { if (checkAdmin(sender)) handleReload(sender); }
+            case "status"   -> { if (checkAdmin(sender)) handleStatus(sender); }
+            case "announce" -> { if (checkAdmin(sender)) handleAnnounce(sender, args); }
+            case "text"     -> { if (checkAdmin(sender)) textCommand.handle(sender, args); }
             case "help"    -> sendHelp(sender);
             default        -> sender.sendMessage(Component.text(
                     "不明なサブコマンドです。/hc help を参照してください。", NamedTextColor.RED));
@@ -114,6 +116,19 @@ public class MainCommand implements CommandExecutor, TabCompleter {
     // Admin sub-commands
     // -------------------------------------------------------------------------
 
+    private void handleAnnounce(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(Component.text("使い方: /hc announce <メッセージ>", NamedTextColor.RED));
+            return;
+        }
+        String raw = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
+        Component message = Component.text()
+                .append(Component.text("[アナウンス] ", NamedTextColor.GOLD).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD))
+                .append(com.himatsudo.core.util.Fmt.parse("&f" + raw))
+                .build();
+        plugin.getServer().broadcast(message);
+    }
+
     private void handleReload(CommandSender sender) {
         sender.sendMessage(Component.text("[HimatsudoCore] コンフィグを再読み込み中...", NamedTextColor.YELLOW));
         try {
@@ -144,6 +159,7 @@ public class MainCommand implements CommandExecutor, TabCompleter {
         }
         sender.sendMessage(statusLine("JoinMessageModule",  plugin.getJoinMessageModule()  != null));
         sender.sendMessage(statusLine("ChatModule",         plugin.getChatModule()         != null));
+        sender.sendMessage(statusLine("PluginListModule",   plugin.getPluginListModule()   != null));
     }
 
     // -------------------------------------------------------------------------
@@ -156,6 +172,7 @@ public class MainCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(Component.text("  /hc profile [名前]  — プロフィールを開く", NamedTextColor.AQUA));
         sender.sendMessage(Component.text("  /hc board           — スコアボード切替",   NamedTextColor.AQUA));
         if (sender.hasPermission(PERM_ADMIN)) {
+            sender.sendMessage(Component.text("  /hc announce <msg>  — 全体アナウンス送信",     NamedTextColor.YELLOW));
             sender.sendMessage(Component.text("  /hc reload          — コンフィグ再読み込み",   NamedTextColor.YELLOW));
             sender.sendMessage(Component.text("  /hc status          — モジュール状態確認",     NamedTextColor.YELLOW));
             sender.sendMessage(Component.text("  /hc text ...        — フロートテキスト管理",   NamedTextColor.YELLOW));
@@ -170,7 +187,7 @@ public class MainCommand implements CommandExecutor, TabCompleter {
                                       @NotNull String[] args) {
         if (args.length == 1) {
             List<String> subs = new ArrayList<>(List.of("menu", "profile", "board", "help"));
-            if (sender.hasPermission(PERM_ADMIN)) subs.addAll(List.of("reload", "status", "text"));
+            if (sender.hasPermission(PERM_ADMIN)) subs.addAll(List.of("announce", "reload", "status", "text"));
             return subs.stream().filter(s -> s.startsWith(args[0].toLowerCase())).toList();
         }
         if (args[0].equalsIgnoreCase("profile") && args.length == 2) {

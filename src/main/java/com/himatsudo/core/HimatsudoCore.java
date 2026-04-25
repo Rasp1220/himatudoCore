@@ -8,6 +8,7 @@ import com.himatsudo.core.modules.ChatModule;
 import com.himatsudo.core.modules.DiscordModule;
 import com.himatsudo.core.modules.JoinMessageModule;
 import com.himatsudo.core.modules.MenuModule;
+import com.himatsudo.core.modules.PluginListModule;
 import com.himatsudo.core.modules.ProfileModule;
 import com.himatsudo.core.modules.SecurityAlertModule;
 import com.himatsudo.core.modules.TabModule;
@@ -24,17 +25,18 @@ import java.util.logging.Level;
  */
 public final class HimatsudoCore extends JavaPlugin {
 
-    private DiscordModule     discordModule;
-    private AnnounceModule    announceModule;
-    private BoardModule       boardModule;
-    private MenuModule        menuModule;
-    private AfkModule         afkModule;
-    private TextModule        textModule;
-    private JoinMessageModule joinMessageModule;
-    private ChatModule        chatModule;
-    private TabModule            tabModule;
-    private ProfileModule        profileModule;
-    private SecurityAlertModule  securityAlertModule;
+    private DiscordModule       discordModule;
+    private AnnounceModule      announceModule;
+    private BoardModule         boardModule;
+    private MenuModule          menuModule;
+    private AfkModule           afkModule;
+    private TextModule          textModule;
+    private JoinMessageModule   joinMessageModule;
+    private ChatModule          chatModule;
+    private TabModule           tabModule;
+    private ProfileModule       profileModule;
+    private SecurityAlertModule securityAlertModule;
+    private PluginListModule    pluginListModule;
 
     @Override
     public void onEnable() {
@@ -72,7 +74,8 @@ public final class HimatsudoCore extends JavaPlugin {
         // ProfileModule は ChatModule・AfkModule の後にロード
         profileModule        = loadModule("ProfileModule",        () -> new ProfileModule(this));
         // SecurityAlertModule は DiscordModule・ChatModule の後にロード
-        securityAlertModule  = loadModule("SecurityAlertModule",  () -> new SecurityAlertModule(this));
+        securityAlertModule = loadModule("SecurityAlertModule", () -> new SecurityAlertModule(this));
+        pluginListModule    = loadModule("PluginListModule",    () -> new PluginListModule(this));
     }
 
     /**
@@ -92,6 +95,7 @@ public final class HimatsudoCore extends JavaPlugin {
     }
 
     private void unloadModules() {
+        if (pluginListModule    != null) pluginListModule.shutdown();
         if (securityAlertModule != null) securityAlertModule.shutdown();
         if (profileModule       != null) profileModule.shutdown();
         if (tabModule           != null) tabModule.shutdown();
@@ -128,6 +132,7 @@ public final class HimatsudoCore extends JavaPlugin {
     public TabModule            getTabModule()            { return tabModule; }
     public ProfileModule        getProfileModule()        { return profileModule; }
     public SecurityAlertModule  getSecurityAlertModule()  { return securityAlertModule; }
+    public PluginListModule     getPluginListModule()     { return pluginListModule; }
 
     // -------------------------------------------------------------------------
     // Internal helper

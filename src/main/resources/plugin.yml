@@ -9,7 +9,7 @@ website: https://himatsudo.net
 commands:
   hc:
     description: HimatsudoCore メインコマンド
-    usage: /hc <menu|profile|board|reload|status|text|help>
+    usage: /hc <menu|profile|board|announce|reload|status|text|help>
     aliases: [himatsudo, himatsudocore]
 
 permissions:
