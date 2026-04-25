@@ -57,7 +57,7 @@ public class ShopMenu {
 
     public void handleClick(int slot, Player clicker) {
         if (slot == SLOT_CLOSE) {
-            Bukkit.getScheduler().runTaskLater(plugin, clicker::closeInventory, 1L);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> clicker.closeInventory(), 1L);
             return;
         }
 
