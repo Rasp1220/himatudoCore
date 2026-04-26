@@ -142,8 +142,9 @@ public class HnpcCommand implements CommandExecutor, TabCompleter {
     // -------------------------------------------------------------------------
 
     private void handleReload(CommandSender sender) {
+        plugin.getShopRegistry().load();
         plugin.getNpcManager().load();
-        sender.sendMessage(Component.text("npcs.yml を再読み込みしました。", NamedTextColor.GREEN));
+        sender.sendMessage(Component.text("shops.yml / npcs.yml を再読み込みしました。", NamedTextColor.GREEN));
     }
 
     // -------------------------------------------------------------------------

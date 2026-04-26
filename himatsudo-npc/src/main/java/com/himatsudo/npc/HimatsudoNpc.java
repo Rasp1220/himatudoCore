@@ -29,7 +29,7 @@ public final class HimatsudoNpc extends JavaPlugin {
 
         currencyManager  = new CurrencyManager(this);
         titleManager     = new TitleManager(this);
-        shopRegistry     = new ShopRegistry(titleManager);
+        shopRegistry     = new ShopRegistry(this, titleManager);
         actionFactory    = buildActionFactory();
         npcManager       = new NpcManager(this);
         shopMenuManager  = new ShopMenuManager();

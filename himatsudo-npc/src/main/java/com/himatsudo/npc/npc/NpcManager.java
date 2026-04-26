@@ -76,9 +76,7 @@ public class NpcManager {
     public void load() {
         if (!file.exists()) {
             plugin.getDataFolder().mkdirs();
-            data = new YamlConfiguration();
-            save();
-            return;
+            plugin.saveResource("npcs.yml", false);
         }
         data = YamlConfiguration.loadConfiguration(file);
         assignments.clear();

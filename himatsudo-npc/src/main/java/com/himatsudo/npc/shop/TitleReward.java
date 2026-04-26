@@ -7,6 +7,8 @@ import org.bukkit.entity.Player;
 public record TitleReward(String titleId, String displayName, TitleManager titleManager)
         implements Reward {
 
+    public static final String TYPE = "title";
+
     @Override
     public void grant(Player player) {
         titleManager.grantTitle(player.getUniqueId(), titleId);
