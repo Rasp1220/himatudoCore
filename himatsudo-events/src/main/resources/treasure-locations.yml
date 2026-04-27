@@ -1,0 +1,4 @@
+# treasure-locations.yml — 宝の設置場所
+# /hev place コマンドで自動的に追記されます
+# 手動編集後は /hev reload で反映してください
+locations: []

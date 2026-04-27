@@ -1,0 +1,8 @@
+treasure-hunt:
+  # 宝を何個集めると限定ショップが解放されるか
+  required-count: 10
+  # パーティクルエフェクトのスポーン間隔 (tick)
+  particle-interval: 10
+  # 宝探し限定ショップのNPC ID (Citizens の /npc list で確認するID)
+  # -1 の場合はNPCによるショップ開放を無効化 (/hev shop コマンドで直接開く)
+  shop-npc-id: -1
