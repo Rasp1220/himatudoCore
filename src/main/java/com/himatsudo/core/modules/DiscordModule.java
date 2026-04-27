@@ -7,8 +7,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -27,8 +25,6 @@ import java.util.logging.Level;
  *   discord.webhook-url    — Discord webhook URL
  *   discord.notify-start   — notify on server start
  *   discord.notify-stop    — notify on server stop
- *   discord.notify-join    — notify on player join
- *   discord.notify-quit    — notify on player quit
  *   discord.notify-death   — notify on player death
  */
 public class DiscordModule implements Listener {
@@ -38,8 +34,7 @@ public class DiscordModule implements Listener {
     private final String webhookUrl;
 
     public DiscordModule(HimatsudoCore plugin) {
-        this.plugin = plugin;
-
+        this.plugin     = plugin;
         this.enabled    = plugin.getConfig().getBoolean("discord.enabled", false);
         this.webhookUrl = plugin.getConfig().getString("discord.webhook-url", "");
 
@@ -56,20 +51,8 @@ public class DiscordModule implements Listener {
     // -------------------------------------------------------------------------
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        if (!enabled || !plugin.getConfig().getBoolean("discord.notify-join", true)) return;
-        sendMessage(":green_circle: **" + event.getPlayer().getName() + "** がサーバーに参加しました。");
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onPlayerQuit(PlayerQuitEvent event) {
-        if (!enabled || !plugin.getConfig().getBoolean("discord.notify-quit", true)) return;
-        sendMessage(":red_circle: **" + event.getPlayer().getName() + "** がサーバーから退出しました。");
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerDeath(PlayerDeathEvent event) {
-        if (!enabled || !plugin.getConfig().getBoolean("discord.notify-death", false)) return;
+        if (!isEnabled() || !plugin.getConfig().getBoolean("discord.notify-death", false)) return;
         Component deathComponent = event.deathMessage();
         String deathMsg = deathComponent != null
                 ? LegacyComponentSerializer.legacySection().serialize(deathComponent)
@@ -78,7 +61,27 @@ public class DiscordModule implements Listener {
     }
 
     // -------------------------------------------------------------------------
-    // Webhook helpers
+    // Server lifecycle notifications
+    // -------------------------------------------------------------------------
+
+    /** onEnable() 後に呼ぶ。スケジューラーが使えるので非同期送信。 */
+    public void notifyServerStart() {
+        if (!isEnabled() || !plugin.getConfig().getBoolean("discord.notify-start", true)) return;
+        sendMessage(":white_check_mark: **サーバーが起動しました。**");
+    }
+
+    /** onDisable() 中に呼ぶ。スケジューラーが停止しているため同期送信。 */
+    public void notifyServerStop() {
+        if (!isEnabled() || !plugin.getConfig().getBoolean("discord.notify-stop", true)) return;
+        sendRawPayloadSync("{\"content\":\":octagonal_sign: **サーバーが停止します。**\"}");
+    }
+
+    public void shutdown() {
+        notifyServerStop();
+    }
+
+    // -------------------------------------------------------------------------
+    // Public API
     // -------------------------------------------------------------------------
 
     /** Discord Embed の 1 フィールドを表すレコード。SecurityAlertModule から利用する。 */
@@ -87,23 +90,13 @@ public class DiscordModule implements Listener {
     /** 機能が有効かどうかを返す (SecurityAlertModule などから参照)。 */
     public boolean isEnabled() { return enabled && !webhookUrl.isEmpty(); }
 
-    /**
-     * プレーンテキストメッセージを Discord webhook へ送信する。
-     * 非同期実行のためメインスレッドをブロックしない。
-     */
+    /** プレーンテキストメッセージを Discord webhook へ非同期送信する。 */
     public void sendMessage(String message) {
         if (!isEnabled()) return;
         sendRawPayload("{\"content\":\"" + escapeJson(message) + "\"}");
     }
 
-    /**
-     * Discord Embed を送信する。SecurityAlertModule などのアラート用途で使用。
-     *
-     * @param title       Embed タイトル
-     * @param description Embed 説明文
-     * @param color       Embed 枠線色 (24bit RGB 整数、例: 0xFF0000 = 赤)
-     * @param fields      表示するフィールドのリスト
-     */
+    /** Discord Embed を非同期送信する。SecurityAlertModule のアラート用途で使用。 */
     public void sendEmbed(String title, String description, int color,
                           List<EmbedField> fields) {
         if (!isEnabled()) return;
@@ -138,7 +131,6 @@ public class DiscordModule implements Listener {
                 () -> postJson(json));
     }
 
-    /** サーバー停止時など、スケジューラーが使えない場面で呼ぶ同期版。 */
     private void sendRawPayloadSync(String json) {
         postJson(json);
     }
@@ -172,25 +164,5 @@ public class DiscordModule implements Listener {
                    .replace("\"", "\\\"")
                    .replace("\n", "\\n")
                    .replace("\r", "\\r");
-    }
-
-    // -------------------------------------------------------------------------
-    // Server lifecycle notifications
-    // -------------------------------------------------------------------------
-
-    /** onEnable() 後に呼ぶ。スケジューラーが使えるので非同期送信。 */
-    public void notifyServerStart() {
-        if (!isEnabled() || !plugin.getConfig().getBoolean("discord.notify-start", true)) return;
-        sendMessage(":white_check_mark: **サーバーが起動しました。**");
-    }
-
-    /** onDisable() 中に呼ぶ。スケジューラーが停止しているため同期送信。 */
-    public void notifyServerStop() {
-        if (!isEnabled() || !plugin.getConfig().getBoolean("discord.notify-stop", true)) return;
-        sendRawPayloadSync("{\"content\":\":octagonal_sign: **サーバーが停止します。**\"}");
-    }
-
-    public void shutdown() {
-        notifyServerStop();
     }
 }

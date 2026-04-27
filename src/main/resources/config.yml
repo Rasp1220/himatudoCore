@@ -17,8 +17,6 @@ discord:
   # 通知する種別を個別に制御できます
   notify-start: true   # サーバー起動通知
   notify-stop:  true   # サーバー停止通知
-  notify-join:  true   # プレイヤー参加通知
-  notify-quit:  true   # プレイヤー退出通知
   notify-death: false  # プレイヤー死亡通知
 
 # ------------------------------------------------------------

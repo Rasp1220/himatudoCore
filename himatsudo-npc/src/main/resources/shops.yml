@@ -1,0 +1,245 @@
+# ============================================================
+# shops.yml — ショップ定義ファイル
+# ============================================================
+#
+# [ショップの追加方法]
+#   1. 新しいショップIDをキーにしてセクションを追加する
+#   2. /hnpc reload で反映（サーバー再起動不要）
+#   3. /hnpc assign <NPC-ID> shop <shop-id> でNPCと紐づける
+#
+# [フィールド説明]
+#   display-name  : GUI タイトル (&カラーコード使用可)
+#   items         : 商品リスト
+#     id          : 商品の内部ID（ユニークな英数字）
+#     material    : アイコン素材 (Bukkit Material 名, 大文字)
+#     display-name: GUI に表示する商品名 (&カラーコード使用可)
+#     description : 商品説明 (リスト形式, &カラーコード使用可)
+#     cost        : 購入に必要なポイント数
+#     reward      : 購入時の報酬
+#       type: title   — HimatsudoNpc の称号を付与
+#         title-id    : 付与する称号の内部ID
+#         display-name: 称号の表示名
+#       type: command — コンソールコマンドを実行
+#         command     : 実行するコマンド ({player} をプレイヤー名に自動置換)
+#         display-name: 購入確認メッセージ用の表示名
+# ============================================================
+
+# ----------------------------------------------------------
+# 称号ショップ
+# ----------------------------------------------------------
+titles:
+  display-name: "&6&l称号ショップ"
+  items:
+    - id: title_beginner
+      material: WOODEN_SWORD
+      display-name: "&7[ビギナー]"
+      description:
+        - "&7プレイ開始の証"
+      cost: 50
+      reward:
+        type: title
+        title-id: beginner
+        display-name: "&7[ビギナー]"
+
+    - id: title_active
+      material: DIAMOND
+      display-name: "&a[アクティブ]"
+      description:
+        - "&7精力的なプレイヤーの証"
+      cost: 200
+      reward:
+        type: title
+        title-id: active
+        display-name: "&a[アクティブ]"
+
+    - id: title_veteran
+      material: NETHERITE_INGOT
+      display-name: "&6[ベテラン]"
+      description:
+        - "&7長年のプレイヤーの証"
+      cost: 1000
+      reward:
+        type: title
+        title-id: veteran
+        display-name: "&6[ベテラン]"
+
+# ----------------------------------------------------------
+# ペットショップ
+#
+# [設定方法]
+#   reward.command に使用するペットプラグインのコマンドを設定してください。
+#   {player} はプレイヤー名に自動置換されます。
+#   例 (MyPet): "mypet capture {player} WOLF"
+#   例 (EpicPets): "epicpets give {player} dog"
+# ----------------------------------------------------------
+pet-shop:
+  display-name: "&a&lペットショップ"
+  items:
+    - id: pet_dog
+      material: BONE
+      display-name: "&f犬ペット"
+      description:
+        - "&7忠実な犬を連れ歩けます"
+      cost: 1000
+      reward:
+        type: command
+        # ▼ 使用するペットプラグインのコマンドに書き換えてください
+        command: "say {player} が犬ペットを購入しました"
+        display-name: "犬ペット"
+
+    - id: pet_cat
+      material: COD
+      display-name: "&f猫ペット"
+      description:
+        - "&7気まぐれな猫を連れ歩けます"
+      cost: 1000
+      reward:
+        type: command
+        command: "say {player} が猫ペットを購入しました"
+        display-name: "猫ペット"
+
+    - id: pet_parrot
+      material: FEATHER
+      display-name: "&2オウムペット"
+      description:
+        - "&7カラフルなオウムを連れ歩けます"
+      cost: 1500
+      reward:
+        type: command
+        command: "say {player} がオウムペットを購入しました"
+        display-name: "オウムペット"
+
+    - id: pet_dragon
+      material: NETHER_STAR
+      display-name: "&5&lドラゴンペット"
+      description:
+        - "&7伝説のドラゴンを連れ歩けます"
+        - "&c希少品！"
+      cost: 10000
+      reward:
+        type: command
+        command: "say {player} がドラゴンペットを購入しました"
+        display-name: "ドラゴンペット"
+
+# ----------------------------------------------------------
+# シーズン限定コスショップ
+#
+# [設定方法]
+#   reward.command に使用するコスチュームプラグインのコマンドを設定してください。
+#   {player} はプレイヤー名に自動置換されます。
+#   例 (ElytraCosmetics): "ec give {player} SPRING_SUIT"
+#   例 (ItemsAdder):      "ia give {player} default:spring_costume"
+#
+# [シーズン入れ替え方法]
+#   販売しないシーズンの items エントリを削除またはコメントアウトし、
+#   /hnpc reload で反映してください（サーバー再起動不要）。
+# ----------------------------------------------------------
+season-costume:
+  display-name: "&d&lシーズン限定コスショップ"
+  items:
+    - id: costume_spring
+      material: PINK_TULIP
+      display-name: "&d春コスチューム"
+      description:
+        - "&7桜満開の春コスチューム"
+        - "&eシーズン限定品！"
+      cost: 3000
+      reward:
+        type: command
+        # ▼ 使用するコスチュームプラグインのコマンドに書き換えてください
+        command: "say {player} が春コスチュームを購入しました"
+        display-name: "春コスチューム"
+
+    - id: costume_summer
+      material: SUNFLOWER
+      display-name: "&e夏コスチューム"
+      description:
+        - "&7夏の輝きをまとうコスチューム"
+        - "&eシーズン限定品！"
+      cost: 3000
+      reward:
+        type: command
+        command: "say {player} が夏コスチュームを購入しました"
+        display-name: "夏コスチューム"
+
+    - id: costume_autumn
+      material: ORANGE_DYE
+      display-name: "&6秋コスチューム"
+      description:
+        - "&7紅葉をイメージしたコスチューム"
+        - "&eシーズン限定品！"
+      cost: 3000
+      reward:
+        type: command
+        command: "say {player} が秋コスチュームを購入しました"
+        display-name: "秋コスチューム"
+
+    - id: costume_winter
+      material: PACKED_ICE
+      display-name: "&b冬コスチューム"
+      description:
+        - "&7雪と氷に包まれたコスチューム"
+        - "&eシーズン限定品！"
+      cost: 3000
+      reward:
+        type: command
+        command: "say {player} が冬コスチュームを購入しました"
+        display-name: "冬コスチューム"
+
+# ----------------------------------------------------------
+# パーティクルショップ
+#
+# [設定方法]
+#   reward.command に使用するパーティクルプラグインのコマンドを設定してください。
+#   {player} はプレイヤー名に自動置換されます。
+#   例 (PlayerParticles): "pp add {player} HEART"
+#   例 (BeautyQuests):    "particles unlock {player} heart"
+# ----------------------------------------------------------
+particle-shop:
+  display-name: "&b&lパーティクルショップ"
+  items:
+    - id: particle_heart
+      material: RED_DYE
+      display-name: "&cハートパーティクル"
+      description:
+        - "&7ハートが舞い散るエフェクト"
+      cost: 800
+      reward:
+        type: command
+        # ▼ 使用するパーティクルプラグインのコマンドに書き換えてください
+        command: "say {player} がハートパーティクルを購入しました"
+        display-name: "ハートパーティクル"
+
+    - id: particle_flame
+      material: BLAZE_POWDER
+      display-name: "&6炎パーティクル"
+      description:
+        - "&7炎を纏うエフェクト"
+      cost: 800
+      reward:
+        type: command
+        command: "say {player} が炎パーティクルを購入しました"
+        display-name: "炎パーティクル"
+
+    - id: particle_snow
+      material: BLUE_DYE
+      display-name: "&b雪パーティクル"
+      description:
+        - "&7雪が舞い散るエフェクト"
+      cost: 800
+      reward:
+        type: command
+        command: "say {player} が雪パーティクルを購入しました"
+        display-name: "雪パーティクル"
+
+    - id: particle_rainbow
+      material: NETHER_STAR
+      display-name: "&d&lレインボーパーティクル"
+      description:
+        - "&7七色に輝くエフェクト"
+        - "&e特別品！"
+      cost: 2500
+      reward:
+        type: command
+        command: "say {player} がレインボーパーティクルを購入しました"
+        display-name: "レインボーパーティクル"

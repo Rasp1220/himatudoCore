@@ -1,0 +1,46 @@
+# ============================================================
+# npcs.yml — NPC アクション設定ファイル
+# ============================================================
+#
+# Citizens でNPCを作成した後、その NPC ID をキーにして設定してください。
+# NPC ID の確認方法: /npc list
+#
+# [アクション種類]
+#   shop            — ショップ GUI を開く
+#   server_transfer — 別サーバーへ転送 (Velocity / BungeeCord)
+#
+# [shop の設定]
+#   shop-id: shops.yml で定義した shop-id を指定
+#   利用可能なショップ:
+#     titles        — 称号ショップ
+#     pet-shop      — ペットショップ
+#     season-costume— シーズン限定コスショップ
+#     particle-shop — パーティクルショップ
+#
+# [server_transfer の設定]
+#   server: 転送先サーバー名 (Velocity の servers 設定と一致させること)
+#
+# [設定例]
+#   assignments:
+#     1:                          # Citizens NPC ID (/npc list で確認)
+#       type: shop
+#       shop-id: pet-shop         # ペットショップNPC
+#     2:
+#       type: shop
+#       shop-id: season-costume   # シーズン限定コスショップNPC
+#     3:
+#       type: shop
+#       shop-id: particle-shop    # パーティクルショップNPC
+#     4:
+#       type: shop
+#       shop-id: titles           # 称号ショップNPC
+#     5:
+#       type: server_transfer
+#       server: bedwars           # bedwars サーバーへ転送するNPC
+#
+# ※ /hnpc assign <NPC-ID> shop <shop-id> コマンドでもインゲームから設定できます。
+#   コマンドで設定した内容はこのファイルに自動保存されます。
+# ※ このファイルのコメントはコマンドで設定すると消えます（YAML仕様）。
+# ============================================================
+
+assignments: {}
