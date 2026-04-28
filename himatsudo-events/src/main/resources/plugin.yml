@@ -8,14 +8,17 @@ softdepend: [Citizens]
 
 commands:
   hev:
-    description: 宝探しイベント管理コマンド
-    usage: /hev <place|remove|list|reload|progress|reset|shop>
+    description: HimatsudoEvents 管理コマンド
+    usage: /hev <place|remove|list|reload|progress|reset|shop|merchant>
     aliases: [himatsudo-events]
 
 permissions:
   hev.admin:
-    description: 宝探し管理コマンドへのアクセス
+    description: HimatsudoEvents 管理コマンドへのアクセス
     default: op
   hev.use:
-    description: 宝探しに参加する
+    description: 宝探しイベントに参加する
+    default: true
+  hev.merchant:
+    description: 伝説の商人ショップを利用する
     default: true

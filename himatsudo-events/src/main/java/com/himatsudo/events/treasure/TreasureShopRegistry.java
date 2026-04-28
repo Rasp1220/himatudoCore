@@ -1,4 +1,4 @@
-package com.himatsudo.events.shop;
+package com.himatsudo.events.treasure;
 
 import com.himatsudo.events.HimatsudoEvents;
 import org.bukkit.Material;
@@ -9,10 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * treasure-shop.yml からショップアイテム定義を読み込む。
- * /hev reload で再読み込み可能。
- */
 public class TreasureShopRegistry {
 
     private final HimatsudoEvents plugin;
@@ -23,10 +19,6 @@ public class TreasureShopRegistry {
         this.plugin = plugin;
         load();
     }
-
-    // -------------------------------------------------------------------------
-    // API
-    // -------------------------------------------------------------------------
 
     public String getDisplayName() { return displayName; }
 
@@ -49,10 +41,6 @@ public class TreasureShopRegistry {
         }
         plugin.getLogger().info("[TreasureShopRegistry] " + items.size() + " 件の限定アイテムを読み込みました。");
     }
-
-    // -------------------------------------------------------------------------
-    // Parsing
-    // -------------------------------------------------------------------------
 
     private TreasureShopItem parseItem(Map<?, ?> map) {
         String id     = str(map, "id", "");

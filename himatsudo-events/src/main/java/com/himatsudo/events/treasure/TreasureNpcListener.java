@@ -1,7 +1,6 @@
-package com.himatsudo.events.npc;
+package com.himatsudo.events.treasure;
 
 import com.himatsudo.events.HimatsudoEvents;
-import com.himatsudo.events.shop.TreasureShopMenu;
 import net.citizensnpcs.api.event.NPCRightClickEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -9,11 +8,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
-/**
- * Citizens NPC への右クリックを検出して宝探し限定ショップを開く。
- * config.yml の treasure-hunt.shop-npc-id で対象NPC IDを指定する。
- * Citizens が存在しない場合はこのリスナーは登録されない。
- */
 public class TreasureNpcListener implements Listener {
 
     private final HimatsudoEvents plugin;

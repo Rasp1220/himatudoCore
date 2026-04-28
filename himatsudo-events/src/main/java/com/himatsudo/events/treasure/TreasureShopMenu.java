@@ -1,4 +1,4 @@
-package com.himatsudo.events.shop;
+package com.himatsudo.events.treasure;
 
 import com.himatsudo.events.HimatsudoEvents;
 import com.himatsudo.events.util.Gui;
@@ -12,16 +12,6 @@ import org.bukkit.inventory.Inventory;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * 宝探し限定ショップの GUI (54スロット)。
- *
- * レイアウト:
- *   スロット 0-44 : 限定アイテム (最大45品)
- *   スロット 45-48: フィラー
- *   スロット 49   : 進捗表示
- *   スロット 50-52: フィラー
- *   スロット 53   : 閉じるボタン
- */
 public class TreasureShopMenu {
 
     static final int SLOT_PROGRESS = 49;
@@ -41,10 +31,6 @@ public class TreasureShopMenu {
         plugin.getShopMenuManager().track(player, this);
     }
 
-    // -------------------------------------------------------------------------
-    // Click handling
-    // -------------------------------------------------------------------------
-
     public void handleClick(int slot, Player clicker) {
         if (slot == SLOT_CLOSE) {
             Bukkit.getScheduler().runTaskLater(plugin, () -> clicker.closeInventory(), 1L);
@@ -54,10 +40,6 @@ public class TreasureShopMenu {
         if (slot >= items.size()) return;
         attemptClaim(clicker, items.get(slot));
     }
-
-    // -------------------------------------------------------------------------
-    // Claim logic
-    // -------------------------------------------------------------------------
 
     private void attemptClaim(Player buyer, TreasureShopItem item) {
         if (!plugin.getProgressManager().hasUnlocked(buyer.getUniqueId())) {
@@ -88,10 +70,6 @@ public class TreasureShopMenu {
         Bukkit.getScheduler().runTaskLater(plugin, () ->
                 new TreasureShopMenu(plugin, buyer).open(), 1L);
     }
-
-    // -------------------------------------------------------------------------
-    // Builder
-    // -------------------------------------------------------------------------
 
     private Inventory build() {
         Inventory inv = Bukkit.createInventory(null, 54,
