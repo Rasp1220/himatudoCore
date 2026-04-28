@@ -1,6 +1,5 @@
 package com.himatsudo.events.merchant;
 
-import com.himatsudo.events.HimatsudoEvents;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import net.kyori.adventure.text.Component;
@@ -14,48 +13,41 @@ import java.time.LocalTime;
 
 public class LegendaryMerchantManager {
 
-    private final HimatsudoEvents plugin;
-    private NPC npc;
+    private final LegendaryMerchantEvent event;
+    private NPC        npc;
     private BukkitTask despawnTask;
     private BukkitTask timeCheckTask;
 
-    public LegendaryMerchantManager(HimatsudoEvents plugin) {
-        this.plugin = plugin;
+    public LegendaryMerchantManager(LegendaryMerchantEvent event) {
+        this.event = event;
         startTimeCheckTask();
     }
 
     // -------------------------------------------------------------------------
-    // Lifecycle
+    // Public API
     // -------------------------------------------------------------------------
 
-    /**
-     * Spawns the merchant NPC at the given location.
-     * @return false if already active
-     */
+    /** Spawns the merchant at the given location. Returns false if already active. */
     public boolean spawn(Location location) {
         if (isActive()) return false;
 
-        String rawName = plugin.getConfig().getString(
-                "legendary-merchant.npc-name", "&6&l[伝説の商人]");
-        String coloredName = rawName.replace('&', '§');
-
-        npc = CitizensAPI.getNPCRegistry().createNPC(EntityType.VILLAGER, coloredName);
+        String rawName = event.getPlugin().getConfig()
+                .getString("legendary-merchant.npc-name", "&6&l[伝説の商人]");
+        npc = CitizensAPI.getNPCRegistry()
+                .createNPC(EntityType.VILLAGER, rawName.replace('&', '§'));
         npc.spawn(location);
 
-        long durationTicks = plugin.getConfig().getLong(
-                "legendary-merchant.duration-seconds", 7200L) * 20L;
-        despawnTask = Bukkit.getScheduler().runTaskLater(plugin, () -> despawn(true), durationTicks);
+        long durationTicks = event.getPlugin().getConfig()
+                .getLong("legendary-merchant.duration-seconds", 7200L) * 20L;
+        despawnTask = Bukkit.getScheduler().runTaskLater(
+                event.getPlugin(), () -> despawn(true), durationTicks);
 
         Bukkit.broadcast(Component.text(
-                "伝説の商人が現れた！限定コスチューム素材を販売しています！",
-                NamedTextColor.GOLD));
+                "伝説の商人が現れた！限定コスチューム素材を販売しています！", NamedTextColor.GOLD));
         return true;
     }
 
-    /**
-     * Despawns and destroys the merchant NPC.
-     * @param broadcast whether to announce the departure to all players
-     */
+    /** Despawns and destroys the NPC. */
     public void despawn(boolean broadcast) {
         if (despawnTask != null) { despawnTask.cancel(); despawnTask = null; }
         if (npc != null) {
@@ -69,43 +61,33 @@ public class LegendaryMerchantManager {
         }
     }
 
-    public boolean isActive() {
-        return npc != null && npc.isSpawned();
-    }
-
-    public int getNpcId() {
-        return npc != null ? npc.getId() : -1;
-    }
+    public boolean isActive()  { return npc != null && npc.isSpawned(); }
+    public int     getNpcId()  { return npc != null ? npc.getId() : -1; }
 
     public void shutdown() {
         if (timeCheckTask != null) { timeCheckTask.cancel(); timeCheckTask = null; }
         despawn(false);
     }
 
+    /** True if the current server hour is within the configured spawn window. */
+    public boolean isWithinTimeWindow() {
+        int start   = event.getPlugin().getConfig().getInt("legendary-merchant.spawn-hour-start", 0);
+        int end     = event.getPlugin().getConfig().getInt("legendary-merchant.spawn-hour-end", 24);
+        int current = LocalTime.now().getHour();
+        return start <= end
+                ? current >= start && current < end
+                : current >= start || current < end;
+    }
+
     // -------------------------------------------------------------------------
-    // Time-window enforcement
+    // Internal
     // -------------------------------------------------------------------------
 
     private void startTimeCheckTask() {
-        long interval = plugin.getConfig().getLong("legendary-merchant.check-interval", 1200L);
-        timeCheckTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            if (isActive() && !isWithinTimeWindow()) {
-                despawn(true);
-            }
+        long interval = event.getPlugin().getConfig()
+                .getLong("legendary-merchant.check-interval", 1200L);
+        timeCheckTask = Bukkit.getScheduler().runTaskTimer(event.getPlugin(), () -> {
+            if (isActive() && !isWithinTimeWindow()) despawn(true);
         }, interval, interval);
-    }
-
-    /**
-     * Returns true if the current server hour is inside the configured spawn window.
-     * Supports wrap-around (e.g. 22–02 spanning midnight).
-     */
-    public boolean isWithinTimeWindow() {
-        int start   = plugin.getConfig().getInt("legendary-merchant.spawn-hour-start", 0);
-        int end     = plugin.getConfig().getInt("legendary-merchant.spawn-hour-end", 24);
-        int current = LocalTime.now().getHour();
-        if (start <= end) {
-            return current >= start && current < end;
-        }
-        return current >= start || current < end;
     }
 }

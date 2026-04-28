@@ -1,26 +1,23 @@
 package com.himatsudo.events.merchant;
 
-import com.himatsudo.events.HimatsudoEvents;
 import net.citizensnpcs.api.event.NPCRightClickEvent;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
 public class LegendaryMerchantListener implements Listener {
 
-    private final HimatsudoEvents plugin;
+    private final LegendaryMerchantEvent event;
 
-    public LegendaryMerchantListener(HimatsudoEvents plugin) {
-        this.plugin = plugin;
+    public LegendaryMerchantListener(LegendaryMerchantEvent event) {
+        this.event = event;
     }
 
     @EventHandler
-    public void onNpcRightClick(NPCRightClickEvent event) {
-        LegendaryMerchantManager manager = plugin.getMerchantManager();
-        if (!manager.isActive()) return;
-        if (event.getNPC().getId() != manager.getNpcId()) return;
+    public void onNpcRightClick(NPCRightClickEvent e) {
+        LegendaryMerchantManager manager = event.getManager();
+        if (manager == null || !manager.isActive()) return;
+        if (e.getNPC().getId() != manager.getNpcId()) return;
 
-        Player player = event.getClicker();
-        new LegendaryMerchantShopMenu(plugin, player).open();
+        new LegendaryMerchantShopMenu(event, e.getClicker()).open();
     }
 }

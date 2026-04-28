@@ -1,6 +1,7 @@
 package com.himatsudo.events.merchant;
 
-import com.himatsudo.events.HimatsudoEvents;
+import com.himatsudo.events.api.ClickableMenu;
+import com.himatsudo.events.api.ShopItem;
 import com.himatsudo.events.util.Gui;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -12,70 +13,60 @@ import org.bukkit.inventory.Inventory;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * 伝説の商人ショップ GUI (54スロット)
- *
- * Layout:
- *   Slot  0-44 : shop items (max 45)
- *   Slot 45-52 : filler
- *   Slot 53    : close button
- */
-public class LegendaryMerchantShopMenu {
+public class LegendaryMerchantShopMenu implements ClickableMenu {
 
-    static final int SLOT_CLOSE = 53;
+    private static final int SLOT_CLOSE = 53;
 
-    private final HimatsudoEvents plugin;
+    private final LegendaryMerchantEvent event;
     private final Player player;
 
-    public LegendaryMerchantShopMenu(HimatsudoEvents plugin, Player player) {
-        this.plugin  = plugin;
-        this.player  = player;
+    public LegendaryMerchantShopMenu(LegendaryMerchantEvent event, Player player) {
+        this.event  = event;
+        this.player = player;
     }
 
     public void open() {
         player.openInventory(build());
-        plugin.getMerchantShopMenuManager().track(player, this);
+        event.getPlugin().getShopMenuManager().track(player, this);
     }
 
+    @Override
     public void handleClick(int slot, Player clicker) {
         if (slot == SLOT_CLOSE) {
-            Bukkit.getScheduler().runTaskLater(plugin, () -> clicker.closeInventory(), 1L);
+            Bukkit.getScheduler().runTaskLater(event.getPlugin(), () -> clicker.closeInventory(), 1L);
             return;
         }
-        List<LegendaryMerchantItem> items = plugin.getMerchantShopRegistry().getItems();
+        List<ShopItem> items = event.getShopRegistry().getItems();
         if (slot >= items.size()) return;
         purchase(clicker, items.get(slot));
     }
 
-    private void purchase(Player buyer, LegendaryMerchantItem item) {
+    private void purchase(Player buyer, ShopItem item) {
         if (!item.command().isEmpty()) {
-            String cmd = item.command().replace("{player}", buyer.getName());
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                    item.command().replace("{player}", buyer.getName()));
         }
-
-        String plain = item.displayName().replaceAll("&[0-9a-fk-or]", "");
-        buyer.sendMessage(Component.text(plain + " を購入しました！", NamedTextColor.GOLD));
-
-        Bukkit.getScheduler().runTaskLater(plugin, () ->
-                new LegendaryMerchantShopMenu(plugin, buyer).open(), 1L);
+        buyer.sendMessage(Component.text(
+                item.displayName().replaceAll("&[0-9a-fk-or]", "") + " を購入しました！",
+                NamedTextColor.GOLD));
+        Bukkit.getScheduler().runTaskLater(event.getPlugin(), () ->
+                new LegendaryMerchantShopMenu(event, buyer).open(), 1L);
     }
 
     private Inventory build() {
         Inventory inv = Bukkit.createInventory(null, 54,
-                Gui.parse(plugin.getMerchantShopRegistry().getDisplayName()));
-
+                Gui.parse(event.getShopRegistry().getDisplayName()));
         for (int i = 0; i < 54; i++) inv.setItem(i, Gui.filler());
 
-        List<LegendaryMerchantItem> items = plugin.getMerchantShopRegistry().getItems();
+        List<ShopItem> items = event.getShopRegistry().getItems();
         for (int i = 0; i < Math.min(items.size(), 45); i++) {
             inv.setItem(i, buildItemStack(items.get(i)));
         }
-
         inv.setItem(SLOT_CLOSE, Gui.item(Material.BARRIER, "&c&l閉じる"));
         return inv;
     }
 
-    private org.bukkit.inventory.ItemStack buildItemStack(LegendaryMerchantItem item) {
+    private org.bukkit.inventory.ItemStack buildItemStack(ShopItem item) {
         List<String> lore = new ArrayList<>(item.description());
         if (!item.costDisplay().isEmpty()) {
             lore.add("");

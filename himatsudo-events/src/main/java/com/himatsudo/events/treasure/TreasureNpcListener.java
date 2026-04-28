@@ -1,6 +1,5 @@
 package com.himatsudo.events.treasure;
 
-import com.himatsudo.events.HimatsudoEvents;
 import net.citizensnpcs.api.event.NPCRightClickEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -10,28 +9,28 @@ import org.bukkit.event.Listener;
 
 public class TreasureNpcListener implements Listener {
 
-    private final HimatsudoEvents plugin;
+    private final TreasureHuntEvent event;
 
-    public TreasureNpcListener(HimatsudoEvents plugin) {
-        this.plugin = plugin;
+    public TreasureNpcListener(TreasureHuntEvent event) {
+        this.event = event;
     }
 
     @EventHandler
-    public void onNpcRightClick(NPCRightClickEvent event) {
-        int shopNpcId = plugin.getConfig().getInt("treasure-hunt.shop-npc-id", -1);
-        if (shopNpcId < 0 || event.getNPC().getId() != shopNpcId) return;
+    public void onNpcRightClick(NPCRightClickEvent e) {
+        int shopNpcId = event.getPlugin().getConfig().getInt("treasure-hunt.shop-npc-id", -1);
+        if (shopNpcId < 0 || e.getNPC().getId() != shopNpcId) return;
 
-        Player player   = event.getClicker();
-        int    required = plugin.getConfig().getInt("treasure-hunt.required-count", 10);
-        int    count    = plugin.getProgressManager().getCount(player.getUniqueId());
+        Player player   = e.getClicker();
+        int    required = event.getPlugin().getConfig().getInt("treasure-hunt.required-count", 10);
+        int    count    = event.getProgressManager().getCount(player.getUniqueId());
 
-        if (!plugin.getProgressManager().hasUnlocked(player.getUniqueId())) {
+        if (!event.getProgressManager().hasUnlocked(player.getUniqueId())) {
             player.sendMessage(Component.text(
                     "まだ宝が足りません！(" + count + "/" + required + "個)",
                     NamedTextColor.RED));
             return;
         }
 
-        new TreasureShopMenu(plugin, player).open();
+        new TreasureShopMenu(event, player).open();
     }
 }

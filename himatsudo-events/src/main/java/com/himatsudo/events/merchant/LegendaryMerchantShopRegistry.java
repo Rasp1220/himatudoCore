@@ -1,6 +1,7 @@
 package com.himatsudo.events.merchant;
 
 import com.himatsudo.events.HimatsudoEvents;
+import com.himatsudo.events.api.ShopItem;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -13,44 +14,40 @@ public class LegendaryMerchantShopRegistry {
 
     private final HimatsudoEvents plugin;
     private String displayName = "&6&l伝説の商人";
-    private final List<LegendaryMerchantItem> items = new ArrayList<>();
+    private final List<ShopItem> items = new ArrayList<>();
 
     public LegendaryMerchantShopRegistry(HimatsudoEvents plugin) {
         this.plugin = plugin;
         load();
     }
 
-    public String getDisplayName() { return displayName; }
-
-    public List<LegendaryMerchantItem> getItems() { return List.copyOf(items); }
+    public String        getDisplayName() { return displayName; }
+    public List<ShopItem> getItems()      { return List.copyOf(items); }
 
     public void load() {
         items.clear();
         File file = new File(plugin.getDataFolder(), "legendary-merchant.yml");
-        if (!file.exists()) {
-            plugin.saveResource("legendary-merchant.yml", false);
-        }
+        if (!file.exists()) plugin.saveResource("legendary-merchant.yml", false);
         YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
         displayName = cfg.getString("display-name", "&6&l伝説の商人");
 
-        List<?> rawItems = cfg.getList("items", List.of());
-        for (Object entry : rawItems) {
+        for (Object entry : cfg.getList("items", List.of())) {
             if (!(entry instanceof Map<?, ?> map)) continue;
-            LegendaryMerchantItem item = parseItem(map);
+            ShopItem item = parseItem(map);
             if (item != null) items.add(item);
         }
-        plugin.getLogger().info("[LegendaryMerchantShopRegistry] " + items.size() + " 件の商品を読み込みました。");
+        plugin.getLogger().info("[LegendaryMerchantShopRegistry] " + items.size() + " 件読み込み。");
     }
 
-    private LegendaryMerchantItem parseItem(Map<?, ?> map) {
-        String id          = str(map, "id", "");
-        String matStr      = str(map, "material", "STONE");
-        String name        = str(map, "display-name", id);
-        String costDisplay = str(map, "cost-display", "");
+    private ShopItem parseItem(Map<?, ?> map) {
+        String   id          = str(map, "id", "");
+        String   matStr      = str(map, "material", "STONE");
+        String   name        = str(map, "display-name", id);
+        String   costDisplay = str(map, "cost-display", "");
+        Material mat         = Material.matchMaterial(matStr);
 
-        Material mat = Material.matchMaterial(matStr);
         if (mat == null) {
-            plugin.getLogger().warning("[LegendaryMerchantShopRegistry] 不明なマテリアル: " + matStr + " (id=" + id + ")");
+            plugin.getLogger().warning("[LegendaryMerchantShopRegistry] 不明マテリアル: " + matStr);
             mat = Material.STONE;
         }
 
@@ -60,11 +57,9 @@ public class LegendaryMerchantShopRegistry {
         }
 
         String command = "";
-        if (map.get("reward") instanceof Map<?, ?> rewardMap) {
-            command = str(rewardMap, "command", "");
-        }
+        if (map.get("reward") instanceof Map<?, ?> rm) command = str(rm, "command", "");
 
-        return new LegendaryMerchantItem(id, mat, name, desc, costDisplay, command);
+        return new ShopItem(id, mat, name, desc, costDisplay, command);
     }
 
     private static String str(Map<?, ?> m, String key, String def) {

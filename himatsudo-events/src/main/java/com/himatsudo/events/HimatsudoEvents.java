@@ -1,73 +1,66 @@
 package com.himatsudo.events;
 
+import com.himatsudo.events.api.EventModule;
+import com.himatsudo.events.api.ShopMenuManager;
 import com.himatsudo.events.command.HevCommand;
-import com.himatsudo.events.merchant.LegendaryMerchantListener;
-import com.himatsudo.events.merchant.LegendaryMerchantManager;
-import com.himatsudo.events.merchant.LegendaryMerchantShopMenuManager;
-import com.himatsudo.events.merchant.LegendaryMerchantShopRegistry;
-import com.himatsudo.events.treasure.TreasureListener;
-import com.himatsudo.events.treasure.TreasureManager;
-import com.himatsudo.events.treasure.TreasureNpcListener;
-import com.himatsudo.events.treasure.TreasureProgressManager;
-import com.himatsudo.events.treasure.TreasureShopMenuManager;
-import com.himatsudo.events.treasure.TreasureShopRegistry;
+import com.himatsudo.events.merchant.LegendaryMerchantEvent;
+import com.himatsudo.events.treasure.TreasureHuntEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * HimatsudoEvents — periodic and limited-time event host.
+ *
+ * Adding a new event:
+ *   1. Create com.himatsudo.events.<name>/ package
+ *   2. Extend EventModule, implement getId() / onEnable() / onDisable()
+ *   3. Call registerEvent(new MyEvent(this)) below
+ */
 public final class HimatsudoEvents extends JavaPlugin {
 
-    private TreasureManager              treasureManager;
-    private TreasureProgressManager      progressManager;
-    private TreasureShopRegistry         shopRegistry;
-    private TreasureShopMenuManager      shopMenuManager;
+    private ShopMenuManager       shopMenuManager;
+    private final List<EventModule> eventModules = new ArrayList<>();
 
-    private LegendaryMerchantManager         merchantManager;
-    private LegendaryMerchantShopRegistry    merchantShopRegistry;
-    private LegendaryMerchantShopMenuManager merchantShopMenuManager;
+    private TreasureHuntEvent      treasureHuntEvent;
+    private LegendaryMerchantEvent legendaryMerchantEvent;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
 
-        treasureManager         = new TreasureManager(this);
-        progressManager         = new TreasureProgressManager(this);
-        shopRegistry            = new TreasureShopRegistry(this);
-        shopMenuManager         = new TreasureShopMenuManager();
-
-        merchantShopRegistry    = new LegendaryMerchantShopRegistry(this);
-        merchantShopMenuManager = new LegendaryMerchantShopMenuManager();
-
-        getServer().getPluginManager().registerEvents(new TreasureListener(this), this);
+        shopMenuManager = new ShopMenuManager();
         getServer().getPluginManager().registerEvents(shopMenuManager, this);
-        getServer().getPluginManager().registerEvents(merchantShopMenuManager, this);
 
-        if (getServer().getPluginManager().getPlugin("Citizens") != null) {
-            merchantManager = new LegendaryMerchantManager(this);
-            getServer().getPluginManager().registerEvents(new TreasureNpcListener(this), this);
-            getServer().getPluginManager().registerEvents(new LegendaryMerchantListener(this), this);
-            getLogger().info("Citizens が検出されました。伝説の商人・宝探しNPCリスナーを有効化しました。");
-        } else {
-            getLogger().warning("Citizens が見つかりません。NPC 機能は無効です。");
-        }
+        registerEvent(treasureHuntEvent      = new TreasureHuntEvent(this));
+        registerEvent(legendaryMerchantEvent = new LegendaryMerchantEvent(this));
 
         HevCommand cmd = new HevCommand(this);
         getCommand("hev").setExecutor(cmd);
         getCommand("hev").setTabCompleter(cmd);
 
-        treasureManager.spawnAll();
+        getLogger().info("HimatsudoEvents enabled. " + eventModules.size() + " event(s) loaded.");
+    }
 
-        getLogger().info("HimatsudoEvents enabled.");
+    /**
+     * Registers and enables one event module.
+     * A module that throws during onEnable() is skipped without crashing the plugin.
+     */
+    public void registerEvent(EventModule module) {
+        try {
+            module.onEnable();
+            eventModules.add(module);
+            getLogger().info("[Events] " + module.getId() + " loaded.");
+        } catch (Exception e) {
+            getLogger().warning("[Events] Failed to load " + module.getId() + ": " + e.getMessage());
+        }
     }
 
     @Override
     public void onDisable() {
-        if (merchantManager != null) {
-            merchantManager.shutdown();
-        }
-        if (treasureManager != null) {
-            treasureManager.removeAll();
-        }
-        if (progressManager != null) {
-            progressManager.save();
+        for (int i = eventModules.size() - 1; i >= 0; i--) {
+            try { eventModules.get(i).onDisable(); } catch (Exception ignored) {}
         }
         getLogger().info("HimatsudoEvents disabled.");
     }
@@ -76,12 +69,7 @@ public final class HimatsudoEvents extends JavaPlugin {
     // Accessors
     // -------------------------------------------------------------------------
 
-    public TreasureManager              getTreasureManager()        { return treasureManager; }
-    public TreasureProgressManager      getProgressManager()        { return progressManager; }
-    public TreasureShopRegistry         getShopRegistry()           { return shopRegistry; }
-    public TreasureShopMenuManager      getShopMenuManager()        { return shopMenuManager; }
-
-    public LegendaryMerchantManager         getMerchantManager()        { return merchantManager; }
-    public LegendaryMerchantShopRegistry    getMerchantShopRegistry()   { return merchantShopRegistry; }
-    public LegendaryMerchantShopMenuManager getMerchantShopMenuManager(){ return merchantShopMenuManager; }
+    public ShopMenuManager        getShopMenuManager()        { return shopMenuManager; }
+    public TreasureHuntEvent      getTreasureHuntEvent()      { return treasureHuntEvent; }
+    public LegendaryMerchantEvent getLegendaryMerchantEvent() { return legendaryMerchantEvent; }
 }

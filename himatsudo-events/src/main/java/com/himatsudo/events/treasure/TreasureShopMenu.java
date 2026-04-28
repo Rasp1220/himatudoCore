@@ -1,6 +1,7 @@
 package com.himatsudo.events.treasure;
 
-import com.himatsudo.events.HimatsudoEvents;
+import com.himatsudo.events.api.ClickableMenu;
+import com.himatsudo.events.api.ShopItem;
 import com.himatsudo.events.util.Gui;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -12,107 +13,100 @@ import org.bukkit.inventory.Inventory;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TreasureShopMenu {
+public class TreasureShopMenu implements ClickableMenu {
 
-    static final int SLOT_PROGRESS = 49;
-    static final int SLOT_CLOSE    = 53;
+    private static final int SLOT_PROGRESS = 49;
+    private static final int SLOT_CLOSE    = 53;
 
-    private final HimatsudoEvents plugin;
+    private final TreasureHuntEvent event;
     private final Player player;
 
-    public TreasureShopMenu(HimatsudoEvents plugin, Player player) {
-        this.plugin  = plugin;
-        this.player  = player;
+    public TreasureShopMenu(TreasureHuntEvent event, Player player) {
+        this.event  = event;
+        this.player = player;
     }
 
     public void open() {
-        Inventory inventory = build();
-        player.openInventory(inventory);
-        plugin.getShopMenuManager().track(player, this);
+        player.openInventory(build());
+        event.getPlugin().getShopMenuManager().track(player, this);
     }
 
+    @Override
     public void handleClick(int slot, Player clicker) {
         if (slot == SLOT_CLOSE) {
-            Bukkit.getScheduler().runTaskLater(plugin, () -> clicker.closeInventory(), 1L);
+            Bukkit.getScheduler().runTaskLater(event.getPlugin(), () -> clicker.closeInventory(), 1L);
             return;
         }
-        List<TreasureShopItem> items = plugin.getShopRegistry().getItems();
+        List<ShopItem> items = event.getShopRegistry().getItems();
         if (slot >= items.size()) return;
         attemptClaim(clicker, items.get(slot));
     }
 
-    private void attemptClaim(Player buyer, TreasureShopItem item) {
-        if (!plugin.getProgressManager().hasUnlocked(buyer.getUniqueId())) {
-            int required = plugin.getConfig().getInt("treasure-hunt.required-count", 10);
-            int count    = plugin.getProgressManager().getCount(buyer.getUniqueId());
+    private void attemptClaim(Player buyer, ShopItem item) {
+        TreasureProgressManager pm       = event.getProgressManager();
+        int                     required = event.getPlugin().getConfig().getInt("treasure-hunt.required-count", 10);
+
+        if (!pm.hasUnlocked(buyer.getUniqueId())) {
             buyer.sendMessage(Component.text(
-                    "まだ宝が足りません！(" + count + "/" + required + "個)",
+                    "まだ宝が足りません！(" + pm.getCount(buyer.getUniqueId()) + "/" + required + "個)",
                     NamedTextColor.RED));
             return;
         }
-
-        if (plugin.getProgressManager().hasClaimed(buyer.getUniqueId(), item.id())) {
+        if (pm.hasClaimed(buyer.getUniqueId(), item.id())) {
             buyer.sendMessage(Component.text("このアイテムはすでに受け取り済みです。", NamedTextColor.YELLOW));
             return;
         }
 
-        plugin.getProgressManager().setClaimed(buyer.getUniqueId(), item.id());
-
+        pm.setClaimed(buyer.getUniqueId(), item.id());
         if (!item.command().isEmpty()) {
-            String cmd = item.command().replace("{player}", buyer.getName());
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                    item.command().replace("{player}", buyer.getName()));
         }
-
         buyer.sendMessage(Component.text(
                 item.displayName().replaceAll("&[0-9a-fk-or]", "") + " を受け取りました！",
                 NamedTextColor.GREEN));
-
-        Bukkit.getScheduler().runTaskLater(plugin, () ->
-                new TreasureShopMenu(plugin, buyer).open(), 1L);
+        Bukkit.getScheduler().runTaskLater(event.getPlugin(), () ->
+                new TreasureShopMenu(event, buyer).open(), 1L);
     }
 
     private Inventory build() {
         Inventory inv = Bukkit.createInventory(null, 54,
-                Gui.parse(plugin.getShopRegistry().getDisplayName()));
-
+                Gui.parse(event.getShopRegistry().getDisplayName()));
         for (int i = 0; i < 54; i++) inv.setItem(i, Gui.filler());
 
-        List<TreasureShopItem> items = plugin.getShopRegistry().getItems();
-        boolean unlocked = plugin.getProgressManager().hasUnlocked(player.getUniqueId());
+        TreasureProgressManager pm       = event.getProgressManager();
+        List<ShopItem>          items    = event.getShopRegistry().getItems();
+        boolean                 unlocked = pm.hasUnlocked(player.getUniqueId());
+        int required = event.getPlugin().getConfig().getInt("treasure-hunt.required-count", 10);
+        int count    = pm.getCount(player.getUniqueId());
 
         for (int i = 0; i < Math.min(items.size(), 45); i++) {
-            TreasureShopItem item    = items.get(i);
-            boolean          claimed = plugin.getProgressManager().hasClaimed(player.getUniqueId(), item.id());
-            inv.setItem(i, buildItemStack(item, unlocked, claimed));
+            ShopItem item    = items.get(i);
+            boolean  claimed = pm.hasClaimed(player.getUniqueId(), item.id());
+            inv.setItem(i, buildItemStack(item, unlocked, claimed, required));
         }
 
-        int required = plugin.getConfig().getInt("treasure-hunt.required-count", 10);
-        int count    = plugin.getProgressManager().getCount(player.getUniqueId());
-        inv.setItem(SLOT_PROGRESS, Gui.item(
-                Material.NETHER_STAR,
-                "&e宝探し進捗",
+        inv.setItem(SLOT_PROGRESS, Gui.item(Material.NETHER_STAR, "&e宝探し進捗",
                 "&f" + count + "/" + required + " 個収集",
                 unlocked ? "&a解放済み！" : "&c残り " + (required - count) + " 個"));
-
         inv.setItem(SLOT_CLOSE, Gui.item(Material.BARRIER, "&c&l閉じる"));
         return inv;
     }
 
-    private org.bukkit.inventory.ItemStack buildItemStack(TreasureShopItem item,
+    private org.bukkit.inventory.ItemStack buildItemStack(ShopItem item,
                                                           boolean unlocked,
-                                                          boolean claimed) {
+                                                          boolean claimed,
+                                                          int required) {
         List<String> lore = new ArrayList<>(item.description());
         lore.add("");
         if (claimed) {
             lore.add("&a受け取り済み");
         } else if (!unlocked) {
-            int required = plugin.getConfig().getInt("treasure-hunt.required-count", 10);
             lore.add("&c宝を " + required + " 個集めると解放");
         } else {
             lore.add("&e右クリックで受け取る");
         }
-
-        String prefix = (claimed || !unlocked) ? "&7" : "";
-        return Gui.item(item.material(), prefix + item.displayName(), lore);
+        return Gui.item(item.material(),
+                (claimed || !unlocked ? "&7" : "") + item.displayName(), lore);
     }
 }
