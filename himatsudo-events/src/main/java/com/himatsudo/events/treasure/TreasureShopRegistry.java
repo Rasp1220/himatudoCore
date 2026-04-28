@@ -58,7 +58,10 @@ public class TreasureShopRegistry {
         String command = "";
         if (map.get("reward") instanceof Map<?, ?> rm) command = str(rm, "command", "");
 
-        return new ShopItem(id, mat, name, desc, "", command);
+        int customModelData = 0;
+        if (map.get("custom-model-data") instanceof Number n) customModelData = n.intValue();
+
+        return new ShopItem(id, mat, name, desc, "", command, customModelData);
     }
 
     private static String str(Map<?, ?> m, String key, String def) {

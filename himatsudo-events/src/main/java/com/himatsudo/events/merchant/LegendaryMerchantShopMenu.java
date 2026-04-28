@@ -74,6 +74,6 @@ public class LegendaryMerchantShopMenu implements ClickableMenu {
         }
         lore.add("");
         lore.add("&eクリックで購入");
-        return Gui.item(item.material(), item.displayName(), lore);
+        return Gui.item(item.material(), item.displayName(), lore, item.customModelData());
     }
 }

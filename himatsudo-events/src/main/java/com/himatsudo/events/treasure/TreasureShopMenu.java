@@ -107,6 +107,7 @@ public class TreasureShopMenu implements ClickableMenu {
             lore.add("&e右クリックで受け取る");
         }
         return Gui.item(item.material(),
-                (claimed || !unlocked ? "&7" : "") + item.displayName(), lore);
+                (claimed || !unlocked ? "&7" : "") + item.displayName(), lore,
+                item.customModelData());
     }
 }

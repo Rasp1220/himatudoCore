@@ -7,9 +7,9 @@ import java.util.List;
 /**
  * Shared shop item record used by all event shop registries.
  *
- * {@code costDisplay} is display-only text (e.g. "1000コイン").
- * Actual currency deduction must be handled inside {@code command}.
- * Leave {@code costDisplay} empty when not applicable.
+ * {@code costDisplay}    — display-only price text (e.g. "1000コイン"). Empty = not shown.
+ * {@code command}        — console command run on purchase; {player} → player name.
+ * {@code customModelData}— applied to the icon ItemStack when > 0; 0 = not set.
  */
 public record ShopItem(
         String id,
@@ -17,5 +17,6 @@ public record ShopItem(
         String displayName,
         List<String> description,
         String costDisplay,
-        String command
+        String command,
+        int customModelData
 ) {}
