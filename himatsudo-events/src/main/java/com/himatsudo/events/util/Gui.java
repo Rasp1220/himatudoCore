@@ -29,10 +29,16 @@ public final class Gui {
     }
 
     public static ItemStack item(Material material, String name, List<String> lore) {
+        return item(material, name, lore, 0);
+    }
+
+    /** Same as {@link #item(Material, String, List)} but also applies a custom model data when {@code cmd > 0}. */
+    public static ItemStack item(Material material, String name, List<String> lore, int customModelData) {
         ItemStack stack = new ItemStack(material);
         ItemMeta  meta  = stack.getItemMeta();
         meta.displayName(parse(name));
         meta.lore(lore.stream().map(Gui::parse).toList());
+        if (customModelData > 0) meta.setCustomModelData(customModelData);
         stack.setItemMeta(meta);
         return stack;
     }

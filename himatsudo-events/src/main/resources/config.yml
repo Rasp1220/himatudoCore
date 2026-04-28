@@ -6,3 +6,16 @@ treasure-hunt:
   # 宝探し限定ショップのNPC ID (Citizens の /npc list で確認するID)
   # -1 の場合はNPCによるショップ開放を無効化 (/hev shop コマンドで直接開く)
   shop-npc-id: -1
+
+legendary-merchant:
+  # NPCの表示名 (&カラーコード使用可)
+  npc-name: "&6&l[伝説の商人]"
+  # 出現を許可するサーバー時間帯 (24時間制, 0-23)
+  # spawn-hour-start から spawn-hour-end の間だけ出現を維持する
+  # 0 〜 24 にすると終日許可
+  spawn-hour-start: 0
+  spawn-hour-end: 24
+  # 出現後に自動退場するまでの時間 (秒)
+  duration-seconds: 7200
+  # 時間帯チェックの間隔 (tick, 1200 = 1分)
+  check-interval: 1200

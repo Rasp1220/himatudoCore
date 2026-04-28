@@ -1,0 +1,74 @@
+# ============================================================
+# legendary-merchant.yml — 伝説の商人ショップ定義ファイル
+# ============================================================
+#
+# [変更方法]
+#   1. このファイルを編集する
+#   2. /hev merchant reload で反映 (サーバー再起動不要)
+#
+# [フィールド説明]
+#   display-name      : GUI タイトル (&カラーコード使用可)
+#   items             : 商品リスト (追加・削除・並び替え自由)
+#     id              : 商品の内部ID (ユニークな英数字)
+#     material        : アイコン素材 (Bukkit Material 名、大文字)
+#     display-name    : GUI に表示する商品名 (&カラーコード使用可)
+#     description     : 商品説明 (リスト形式、&カラーコード使用可)
+#     cost-display    : (任意) GUI に表示する価格テキスト — 表示のみ
+#                       実際の通貨引き落としは reward.command で処理すること
+#     custom-model-data: (任意) リソースパック用カスタムモデルデータ (整数)
+#                        省略またはコメントアウトすると通常のアイテム外観を使用
+#     reward          :
+#       type: command
+#         command     : コンソールコマンド ({player} をプレイヤー名に自動置換)
+#                       例: "eco take {player} 1000 && costume give {player} wings"
+# ============================================================
+
+display-name: "&6&l伝説の商人"
+items:
+  - id: legendary_costume_wings
+    material: ELYTRA
+    display-name: "&d&l[伝説] 天使の翼コスチューム素材"
+    description:
+      - "&7超レアなコスチューム素材"
+      - "&dオーロラの羽根を模した限定品"
+    cost-display: "1000コイン"
+    # custom-model-data: 2001
+    reward:
+      type: command
+      command: "say {player} が天使の翼コスチューム素材を購入しました"
+
+  - id: legendary_costume_dragon
+    material: DRAGON_HEAD
+    display-name: "&5&l[伝説] 龍鱗コスチューム素材"
+    description:
+      - "&7超レアなコスチューム素材"
+      - "&5伝説の龍から採れた希少な鱗"
+    cost-display: "2000コイン"
+    # custom-model-data: 2002
+    reward:
+      type: command
+      command: "say {player} が龍鱗コスチューム素材を購入しました"
+
+  - id: legendary_costume_shadow
+    material: CRYING_OBSIDIAN
+    display-name: "&8&l[伝説] 闇の結晶コスチューム素材"
+    description:
+      - "&7超レアなコスチューム素材"
+      - "&8深淵から生まれた漆黒の結晶"
+    cost-display: "1500コイン"
+    # custom-model-data: 2003
+    reward:
+      type: command
+      command: "say {player} が闇の結晶コスチューム素材を購入しました"
+
+  - id: legendary_costume_aurora
+    material: AMETHYST_SHARD
+    display-name: "&b&l[伝説] オーロラの欠片コスチューム素材"
+    description:
+      - "&7超レアなコスチューム素材"
+      - "&b夜空に輝くオーロラの輝きを宿す"
+    cost-display: "800コイン"
+    # custom-model-data: 2004
+    reward:
+      type: command
+      command: "say {player} がオーロラの欠片コスチューム素材を購入しました"
