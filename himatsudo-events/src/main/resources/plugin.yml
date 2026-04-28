@@ -1,0 +1,21 @@
+name: HimatsudoEvents
+version: '${project.version}'
+main: com.himatsudo.events.HimatsudoEvents
+api-version: '1.21'
+description: Treasure hunt event system for Himatsudo server
+authors: [Himatsudo]
+softdepend: [Citizens]
+
+commands:
+  hev:
+    description: 宝探しイベント管理コマンド
+    usage: /hev <place|remove|list|reload|progress|reset|shop>
+    aliases: [himatsudo-events]
+
+permissions:
+  hev.admin:
+    description: 宝探し管理コマンドへのアクセス
+    default: op
+  hev.use:
+    description: 宝探しに参加する
+    default: true

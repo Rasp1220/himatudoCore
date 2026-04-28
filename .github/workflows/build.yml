@@ -36,6 +36,9 @@ jobs:
       - name: Build HimatsudoNpc
         run: mvn -B package --no-transfer-progress -f himatsudo-npc/pom.xml
 
+      - name: Build HimatsudoEvents
+        run: mvn -B package --no-transfer-progress -f himatsudo-events/pom.xml
+
       - name: Upload HimatsudoCore artifact
         uses: actions/upload-artifact@v4
         with:
@@ -48,4 +51,11 @@ jobs:
         with:
           name: HimatsudoNpc-SNAPSHOT
           path: himatsudo-npc/target/HimatsudoNpc-*.jar
+          if-no-files-found: error
+
+      - name: Upload HimatsudoEvents artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HimatsudoEvents-SNAPSHOT
+          path: himatsudo-events/target/HimatsudoEvents-*.jar
           if-no-files-found: error
